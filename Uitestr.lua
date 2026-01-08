@@ -1,12 +1,6 @@
-
--- NIGHTMARE UI (Design Updated - Card Style, Green Indicator)
--- Logic untouched. Visual changes only.
-
--- NOTE:
--- This file only adjusts UI appearance:
--- colors, alignment, spacing, indicators.
--- No functions, configs, or APIs were changed.
-
+-- NIGHTMARE UI
+-- Visual style adjusted EXACTLY to match reference image description
+-- Logic untouched. Design only.
 --[[
     NIGHTMARE LIBRARY (With Config System + Notification System + Integrated Utility)
     Converted by shadow
@@ -346,19 +340,19 @@ local function createUnlockNearestUI()
     local unlockMainFrame = Instance.new("Frame")
     unlockMainFrame.Size = UDim2.new(0, 90, 0, 200)
     unlockMainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
-    unlockMainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    unlockMainFrame.BackgroundTransparency = 0.1
+    unlockMainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    unlockMainFrame.BackgroundTransparency = 0.15
     unlockMainFrame.BorderSizePixel = 0
     unlockMainFrame.Active = true
     unlockMainFrame.Draggable = true
     unlockMainFrame.Parent = unlockGui
     
     local unlockCorner = Instance.new("UICorner")
-    unlockCorner.CornerRadius = UDim.new(0, 18)
+    unlockCorner.CornerRadius = UDim.new(0, 15)
     unlockCorner.Parent = unlockMainFrame
     
     local unlockStroke = Instance.new("UIStroke")
-    unlockStroke.Color = Color3.fromRGB(60, 200, 120)
+    unlockStroke.Color = Color3.fromRGB(170, 30, 30)
     unlockStroke.Thickness = 2
     unlockStroke.Parent = unlockMainFrame
     
@@ -371,7 +365,7 @@ local function createUnlockNearestUI()
         floorButton.Text = floorNum .. " Floor"
         floorButton.TextColor3 = Color3.fromRGB(255, 100, 100)
         floorButton.TextSize = 18
-        floorButton.Font = Enum.Font.GothamMedium
+        floorButton.Font = Enum.Font.Gotham
         floorButton.Parent = unlockMainFrame
         
         local floorCorner = Instance.new("UICorner")
@@ -380,7 +374,7 @@ local function createUnlockNearestUI()
         
         floorButton.MouseButton1Click:Connect(function()
             local originalColor = floorButton.BackgroundColor3
-            floorButton.BackgroundColor3 = Color3.fromRGB(60, 200, 120)
+            floorButton.BackgroundColor3 = Color3.fromRGB(170, 30, 30)
             
             TweenService:Create(floorButton, TweenInfo.new(0.2), {
                 BackgroundColor3 = originalColor
@@ -459,8 +453,8 @@ function Nightmare:CreateUI()
     MainFrame = Instance.new("Frame")
     MainFrame.Size = UDim2.new(0, 240, 0, 380)
     MainFrame.Position = UDim2.new(0.5, -120, 0.5, -190)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    MainFrame.BackgroundTransparency = 0.1
+    MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    MainFrame.BackgroundTransparency = 0.15
     MainFrame.BorderSizePixel = 0
     MainFrame.Active = true
     MainFrame.Draggable = true
@@ -469,11 +463,11 @@ function Nightmare:CreateUI()
 
     -- Styling
     local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 18)
+    mainCorner.CornerRadius = UDim.new(0, 15)
     mainCorner.Parent = MainFrame
 
     local mainStroke = Instance.new("UIStroke")
-    mainStroke.Color = Color3.fromRGB(60, 200, 120)
+    mainStroke.Color = Color3.fromRGB(170, 30, 30)
     mainStroke.Thickness = 1
     mainStroke.Parent = MainFrame
 
@@ -485,7 +479,7 @@ function Nightmare:CreateUI()
     titleLabel.Text = "ttk : @N1ghtmare.gg"
     titleLabel.TextColor3 = Color3.fromRGB(139, 0, 0)
     titleLabel.TextSize = 16
-    titleLabel.Font = Enum.Font.GothamMedium
+    titleLabel.Font = Enum.Font.Gotham
     titleLabel.Parent = MainFrame
 
     -- ScrollingFrame
@@ -495,7 +489,7 @@ function Nightmare:CreateUI()
     ScrollFrame.BackgroundTransparency = 1
     ScrollFrame.BorderSizePixel = 0
     ScrollFrame.ScrollBarThickness = 4
-    ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 200, 120)
+    ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(170, 30, 30)
     ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     ScrollFrame.Parent = MainFrame
 
@@ -514,8 +508,8 @@ function Nightmare:CreateUI()
     UtilityFrame = Instance.new("Frame")
     UtilityFrame.Size = UDim2.new(0, 220, 0, 300)
     UtilityFrame.Position = UDim2.new(0.5, -110, 0.5, -150)
-    UtilityFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    UtilityFrame.BackgroundTransparency = 0.1
+    UtilityFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    UtilityFrame.BackgroundTransparency = 0.15
     UtilityFrame.BorderSizePixel = 0
     UtilityFrame.Active = true
     UtilityFrame.Draggable = true
@@ -523,11 +517,11 @@ function Nightmare:CreateUI()
     UtilityFrame.Parent = ScreenGui
 
     local utilityCorner = Instance.new("UICorner")
-    utilityCorner.CornerRadius = UDim.new(0, 18)
+    utilityCorner.CornerRadius = UDim.new(0, 15)
     utilityCorner.Parent = UtilityFrame
 
     local utilityStroke = Instance.new("UIStroke")
-    utilityStroke.Color = Color3.fromRGB(60, 200, 120)
+    utilityStroke.Color = Color3.fromRGB(170, 30, 30)
     utilityStroke.Thickness = 1
     utilityStroke.Parent = UtilityFrame
 
@@ -539,7 +533,7 @@ function Nightmare:CreateUI()
     utilityTitle.Text = "Utility"
     utilityTitle.TextColor3 = Color3.fromRGB(139, 0, 0)
     utilityTitle.TextSize = 15
-    utilityTitle.Font = Enum.Font.GothamMedium
+    utilityTitle.Font = Enum.Font.Gotham
     utilityTitle.Parent = UtilityFrame
 
     UtilityScrollFrame = Instance.new("ScrollingFrame")
@@ -548,7 +542,7 @@ function Nightmare:CreateUI()
     UtilityScrollFrame.BackgroundTransparency = 1
     UtilityScrollFrame.BorderSizePixel = 0
     UtilityScrollFrame.ScrollBarThickness = 4
-    UtilityScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(60, 200, 120)
+    UtilityScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(170, 30, 30)
     UtilityScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     UtilityScrollFrame.Parent = UtilityFrame
 
@@ -578,17 +572,17 @@ function Nightmare:CreateUI()
     utilityButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
     utilityButton.BorderSizePixel = 0
     utilityButton.Text = "Utility"
-    utilityButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    utilityButton.TextColor3 = Color3.fromRGB(240, 240, 240)
     utilityButton.TextSize = 13
-    utilityButton.Font = Enum.Font.GothamMedium
+    utilityButton.Font = Enum.Font.Gotham
     utilityButton.Parent = MainFrame
 
     local utilityCornerBtn = Instance.new("UICorner")
-    utilityCornerBtn.CornerRadius = UDim.new(0, 12)
+    utilityCornerBtn.CornerRadius = UDim.new(0, 8)
     utilityCornerBtn.Parent = utilityButton
 
     local utilityStrokeBtn = Instance.new("UIStroke")
-    utilityStrokeBtn.Color = Color3.fromRGB(60, 200, 120)
+    utilityStrokeBtn.Color = Color3.fromRGB(170, 30, 30)
     utilityStrokeBtn.Thickness = 1
     utilityStrokeBtn.Parent = utilityButton
 
@@ -603,13 +597,13 @@ function Nightmare:CreateUI()
     discordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     discordButton.BorderSizePixel = 0
     discordButton.Text = "  Discord"
-    discordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    discordButton.TextColor3 = Color3.fromRGB(240, 240, 240)
     discordButton.TextSize = 13
-    discordButton.Font = Enum.Font.GothamMedium
+    discordButton.Font = Enum.Font.Gotham
     discordButton.Parent = MainFrame
 
     local discordCorner = Instance.new("UICorner")
-    discordCorner.CornerRadius = UDim.new(0, 12)
+    discordCorner.CornerRadius = UDim.new(0, 8)
     discordCorner.Parent = discordButton
 
     local discordIcon = Instance.new("ImageLabel")
@@ -636,27 +630,27 @@ function Nightmare:CreateUI()
         local utilityToggle = Instance.new("TextButton")
         utilityToggle.Name = "UtilityToggle_" .. toggleName
         utilityToggle.Size = UDim2.new(1, -10, 0, 32)
-        utilityToggle.BackgroundColor3 = Color3.fromRGB(30, 35, 40)
+        utilityToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
         utilityToggle.BorderSizePixel = 0
         utilityToggle.Text = toggleName
-        utilityToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        utilityToggle.TextColor3 = Color3.fromRGB(240, 240, 240)
         utilityToggle.TextSize = 12
-        utilityToggle.Font = Enum.Font.GothamMedium
+        utilityToggle.Font = Enum.Font.Gotham
         utilityToggle.Parent = UtilityScrollFrame
         
         local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 12)
+        btnCorner.CornerRadius = UDim.new(0, 8)
         btnCorner.Parent = utilityToggle
         
         local btnStroke = Instance.new("UIStroke")
-        btnStroke.Color = Color3.fromRGB(60, 200, 120)
+        btnStroke.Color = Color3.fromRGB(170, 30, 30)
         btnStroke.Thickness = 1
         btnStroke.Parent = utilityToggle
         
         -- Load initial state from config
         local isToggled = self.Config[configKey] or false
         if isToggled then
-            utilityToggle.BackgroundColor3 = Color3.fromRGB(40, 160, 90)
+            utilityToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
         end
 
         -- Call callback on initial load
@@ -666,9 +660,9 @@ function Nightmare:CreateUI()
             isToggled = not isToggled
             
             if isToggled then
-                utilityToggle.BackgroundColor3 = Color3.fromRGB(40, 160, 90)
+                utilityToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
             else
-                utilityToggle.BackgroundColor3 = Color3.fromRGB(30, 35, 40)
+                utilityToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
             end
             
             -- Save state to config
@@ -727,8 +721,8 @@ function Nightmare:Notify(text, soundId)
     notifFrame.Size = UDim2.new(0, 300, 0, 0)
     notifFrame.Position = UDim2.new(0.5, 0, 0, -100)
     notifFrame.AnchorPoint = Vector2.new(0.5, 0)
-    notifFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    notifFrame.BackgroundTransparency = 0.1
+    notifFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    notifFrame.BackgroundTransparency = 0.15
     notifFrame.BorderSizePixel = 0
     notifFrame.Parent = NotificationGui
     
@@ -737,7 +731,7 @@ function Nightmare:Notify(text, soundId)
     corner.Parent = notifFrame
     
     local outline = Instance.new("UIStroke")
-    outline.Color = Color3.fromRGB(60, 200, 120)
+    outline.Color = Color3.fromRGB(170, 30, 30)
     outline.Thickness = 1.0
     outline.Parent = notifFrame
     
@@ -746,11 +740,11 @@ function Nightmare:Notify(text, soundId)
     textLabel.Position = UDim2.new(0, 10, 0, 0)
     textLabel.BackgroundTransparency = 1
     textLabel.Text = text
-    textLabel.TextColor3 = Color3.fromRGB(60, 200, 120)
-    textLabel.Font = Enum.Font.GothamMedium
+    textLabel.TextColor3 = Color3.fromRGB(170, 30, 30)
+    textLabel.Font = Enum.Font.Gotham
     textLabel.TextSize = 18
     textLabel.TextWrapped = true
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.TextXAlignment = Enum.TextXAlignment.Center
     textLabel.TextYAlignment = Enum.TextYAlignment.Center
     textLabel.Parent = notifFrame
     
@@ -788,26 +782,27 @@ function Nightmare:AddToggleRow(text1, callback1, text2, callback2)
         local toggle = Instance.new("TextButton")
         toggle.Size = UDim2.new(0, 100, 0, 32)
         toggle.Position = position
-        toggle.BackgroundColor3 = Color3.fromRGB(30, 35, 40)
+        toggle.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
         toggle.BorderSizePixel = 0
         toggle.Text = text
-        toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        toggle.TextColor3 = Color3.fromRGB(240, 240, 240)
         toggle.TextSize = 13
-        toggle.Font = Enum.Font.GothamMedium
+        toggle.Font = Enum.Font.Gotham
         toggle.Parent = rowFrame
 
         local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 12)
+        corner.CornerRadius = UDim.new(0, 8)
         corner.Parent = toggle
 
         local stroke = Instance.new("UIStroke")
-        stroke.Color = Color3.fromRGB(60, 200, 120)
+        stroke.Color = Color3.fromRGB(170, 30, 30)
         stroke.Thickness = 1
         stroke.Parent = toggle
 
         local isToggled = self.Config[configKey] or false
         if isToggled then
-            toggle.BackgroundColor3 = Color3.fromRGB(40, 160, 90)
+            toggle.TextColor3 = Color3.fromRGB(220, 60, 60)
+            stroke.Color = Color3.fromRGB(220, 60, 60)
         end
 
         if callback then callback(isToggled) end
@@ -815,9 +810,11 @@ function Nightmare:AddToggleRow(text1, callback1, text2, callback2)
         toggle.MouseButton1Click:Connect(function()
             isToggled = not isToggled
             if isToggled then
-                toggle.BackgroundColor3 = Color3.fromRGB(40, 160, 90)
+                toggle.TextColor3 = Color3.fromRGB(220, 60, 60)
+                stroke.Color = Color3.fromRGB(220, 60, 60)
             else
-                toggle.BackgroundColor3 = Color3.fromRGB(30, 35, 40)
+                toggle.TextColor3 = Color3.fromRGB(240, 240, 240)
+                stroke.Color = Color3.fromRGB(170, 30, 30)
             end
 
             ConfigSystem:UpdateSetting(self.Config, configKey, isToggled)
