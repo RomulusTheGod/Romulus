@@ -1,902 +1,1471 @@
---[[
-    NIGHTMARE LIBRARY (With Config System + Notification System + Integrated Utility)
-    Converted by shadow
-]]
+-- Cài đặt team và khởi tạo biến
+getgenv().team = "Marines" -- Pirates
 
-local Nightmare = {}
-local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
-local TweenService = game:GetService("TweenService")
-local SoundService = game:GetService("SoundService")
-local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
-local LocalPlayer = Players.LocalPlayer
+-- Đợi game tải hoàn chỉnh
+repeat wait() until game:IsLoaded() and game.Players.LocalPlayer:FindFirstChild("DataLoaded")
 
--- ==================== ANTI-DETECTION PARENT (INFINITE YIELD METHOD) ====================
--- Fungsi untuk mendapatkan parent GUI yang paling selamat.
--- Keutamaan: gethui() > syn.protect_gui()
-local function getSafeCoreGuiParent()
-    -- 1. Cuba gunakan gethui() (kaedah paling selamat dan moden)
-    if gethui then
-        local success, result = pcall(function()
-            return gethui()
-        end)
-        if success and result then
-            return result
-        end
-    end
-
-    -- 2. Jika gethui gagal, Cuba gunakan syn.protect_gui()
-    if syn and syn.protect_gui then
-        local protectedGui = Instance.new("ScreenGui")
-        protectedGui.Name = "Nightmare_Protected"
-        protectedGui.ResetOnSpawn = false
-        protectedGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        syn.protect_gui(protectedGui)
-        protectedGui.Parent = CoreGui
-        return protectedGui
-    end
-
-    -- Jika kedua-duanya gagal, kembalikan CoreGui sebagai fallback
-    return CoreGui
+-- Tự động chọn team với phương pháp đáng tin cậy hơn
+if game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Main (minimal)") then
+    repeat
+        wait()
+        local l_Remotes_0 = game.ReplicatedStorage:WaitForChild("Remotes")
+        l_Remotes_0.CommF_:InvokeServer("SetTeam", getgenv().team)
+        task.wait(3)
+    until not game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Main (minimal)")
 end
 
--- ==================== CONFIG SAVE SYSTEM ====================
-local ConfigSystem = {}
-ConfigSystem.ConfigFile = "Nightmare_Config.json"
+-- Tiếp tục đợi GUI chính tải
+repeat task.wait() until game.Players.LocalPlayer.PlayerGui:FindFirstChild("Main")
 
--- Default config
-ConfigSystem.DefaultConfig = {}
+-- >>> TẢI CUTTAY UI <
+-- Tải UI trước khi khởi tạo auto bounty
+local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/diemquy/testhub/refs/heads/main/autobountyui.lua"))()
 
--- Load config dari file
-function ConfigSystem:Load()
-    if isfile and isfile(self.ConfigFile) then
-        local success, result = pcall(function()
-            local fileContent = readfile(self.ConfigFile)
-            local decoded = HttpService:JSONDecode(fileContent)
-            return decoded
-        end)
-        
-        if success and result then
-            return result
-        else
-            warn("⚠️ Failed to load config, using defaults")
-            return self.DefaultConfig
-        end
-    else
-        return self.DefaultConfig
-    end
+-- Khởi tạo cài đặt cơ bản nếu chưa tồn tại
+if not getgenv().Setting then
+    getgenv().Setting = {
+        ["YOU"] = {
+            ["Team"] = getgenv().team or "Pirates",
+        },
+        ["Webhook"] = {
+            ["Enabled"] = true,
+            ["Url"] = ""
+        },
+        ["Chat"] = {
+            ["Enabled"] = false,
+            ["List"] = {""},
+        }
+    }
 end
 
--- Save config ke file
-function ConfigSystem:Save(config)
-    local success, error = pcall(function()
-        local encoded = HttpService:JSONEncode(config)
-        writefile(self.ConfigFile, encoded)
-    end)
+-- Đảm bảo tồn tại tất cả các cài đặt cần thiết
+if not getgenv().Setting.Melee then
+    getgenv().Setting.Melee = {
+        ["Enable"] = true,
+        ["Z"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["X"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["C"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["Delay"] = 1.5
+    }
+end
+
+if not getgenv().Setting.Sword then
+    getgenv().Setting.Sword = {
+        ["Enable"] = true,
+        ["Z"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["X"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["Delay"] = 1
+    }
+end
+
+if not getgenv().Setting.Gun then
+    getgenv().Setting.Gun = {
+        ["Enable"] = true,
+        ["Z"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["X"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["Delay"] = 1,
+        ["GunMode"] = false
+    }
+end
+
+if not getgenv().Setting.Fruit then
+    getgenv().Setting.Fruit = {
+        ["Enable"] = true,
+        ["Z"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["X"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["C"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["V"] = {["Enable"] = false, ["HoldTime"] = 0.1},
+        ["F"] = {["Enable"] = true, ["HoldTime"] = 0.1},
+        ["Delay"] = 1
+    }
+end
+
+if not getgenv().Setting.Click then
+    getgenv().Setting.Click = {
+        ["FastClick"] = true,
+        ["AlwaysClick"] = true
+    }
+end
+
+if not getgenv().Setting.Hunt then
+    getgenv().Setting.Hunt = {
+        ["Min"] = 0,
+        ["Max"] = 30000000
+    }
+end
+
+if not getgenv().Setting.Skip then
+    getgenv().Setting.Skip = {
+        ["V4"] = true,
+        ["Fruit"] = false,
+        ["FruitList"] = {"Buddha", "Leopard", "T-Rex"},
+        ["SafeZone"] = true,
+        ["NoHaki"] = true,
+        ["NoPvP"] = true
+    }
+end
+
+if not getgenv().Setting.SafeHealth then
+    getgenv().Setting.SafeHealth = {
+        ["Health"] = 7000,
+        ["Mask"] = false,
+        ["MaskType"] = "Mask",
+        ["RaceV4"] = false
+    }
+end
+
+if not getgenv().Setting.Another then
+    getgenv().Setting.Another = {
+        ["V3"] = true,
+        ["V4"] = true,
+        ["CustomHealth"] = true,
+        ["Health"] = 7000,
+        ["WhiteScreen"] = false,
+        ["FPSBoots"] = false,
+        ["LockCamera"] = false,
+        ["AutoServerHop"] = true,
+        ["HopWhenNoBounty"] = true,
+        ["BountyLock"] = false,
+        ["BountyLockAt"] = 30000000,
+        ["ServerHopAfterTime"] = false,
+        ["ServerHopTime"] = 900,
+        ["CheckCombatBeforeHop"] = true,
+        ["MaxPlayersInServer"] = 8
+    }
+end
+
+-- Khởi tạo biến toàn cục
+getgenv().weapon = nil
+getgenv().targ = nil 
+getgenv().lasttarrget = nil
+getgenv().checked = {}
+getgenv().pl = game.Players:GetPlayers()
+getgenv().killed = nil
+_G.Earned = 0  -- Số tiền kiếm được hiện tại
+_G.TotalEarn = 0  -- Tổng số tiền kiếm được
+_G.Time = 0  -- Thời gian hoạt động
+
+-- Định nghĩa thế giới và cấu hình đảo
+local World1, World2, World3 = false, false, false
+
+if game.PlaceId == 7449423635 then
+    World3 = true
+else
+    game.Players.LocalPlayer:Kick("Chỉ hỗ trợ BF Sea 3")
+    return
+end 
+
+-- Cấu hình đảo dựa trên thế giới
+local distbyp, island
+if World3 then 
+    distbyp = 5000
+    island = {
+        ["Port Town"] = CFrame.new(-290.7376708984375, 6.729952812194824, 5343.5537109375),
+        ["Hydra Island"] = CFrame.new(5749.7861328125 + 50, 611.9736938476562, -276.2497863769531),
+        ["Mansion"] = CFrame.new(-12471.169921875 + 50, 374.94024658203, -7551.677734375),
+        ["Castle On The Sea"] = CFrame.new(-5085.23681640625 + 50, 316.5072021484375, -3156.202880859375),
+        ["Haunted Island"] = CFrame.new(-9547.5703125, 141.0137481689453, 5535.16162109375),
+        ["Great Tree"] = CFrame.new(2681.2736816406, 1682.8092041016, -7190.9853515625),
+        ["Candy Island"] = CFrame.new(-1106.076416015625, 13.016114234924316, -14231.9990234375),
+        ["Cake Island"] = CFrame.new(-1903.6856689453125, 36.70722579956055, -11857.265625),
+        ["Loaf Island"] = CFrame.new(-889.8325805664062, 64.72842407226562, -10895.8876953125),
+        ["Peanut Island"] = CFrame.new(-1943.59716796875, 37.012996673583984, -10288.01171875),
+        ["Cocoa Island"] = CFrame.new(147.35205078125, 23.642955780029297, -12030.5498046875),
+        ["Tiki Outpost"] = CFrame.new(-16234,9,416)
+    } 
+elseif World2 then 
+    distbyp = 3500
+    island = { 
+        a = CFrame.new(753.14288330078, 408.23559570313, -5274.6147460938),
+        b = CFrame.new(-5622.033203125, 492.19604492188, -781.78552246094),
+        c = CFrame.new(-11.311455726624, 29.276733398438, 2771.5224609375),
+        d = CFrame.new(-2448.5300292969, 73.016105651855, -3210.6306152344),
+        e = CFrame.new(-380.47927856445, 77.220390319824, 255.82550048828), 
+        f = CFrame.new(-3032.7641601563, 317.89672851563, -10075.373046875),
+        g = CFrame.new(6148.4116210938, 294.38687133789, -6741.1166992188),
+        h = CFrame.new(923.40197753906, 125.05712890625, 32885.875),
+        i = CFrame.new(-6127.654296875, 15.951762199402, -5040.2861328125),
+    }
+elseif World1 then 
+    distbyp = 1500
+    island = { 
+        a = CFrame.new(979.79895019531, 16.516613006592, 1429.0466308594), 
+        b = CFrame.new(-2566.4296875, 6.8556680679321, 2045.2561035156), 
+        c = CFrame.new(944.15789794922, 20.919729232788, 4373.3002929688), 
+        d = CFrame.new(-1181.3093261719, 4.7514905929565, 3803.5456542969), 
+        e = CFrame.new(-1612.7957763672, 36.852081298828, 149.12843322754), 
+        f = CFrame.new(-690.33081054688, 15.09425163269, 1582.2380371094),
+        g = CFrame.new(-4607.82275, 872.54248, -1667.55688), 
+        h = CFrame.new(-7952.31006, 5545.52832, -320.704956),
+        i = CFrame.new(-4914.8212890625, 50.963626861572, 4281.0278320313),
+        j = CFrame.new(-1427.6203613281, 7.2881078720093, -2792.7722167969),
+        k = CFrame.new(1347.8067626953, 104.66806030273, -1319.7370605469),
+        l = CFrame.new(5127.1284179688, 59.501365661621, 4105.4458007813),
+        m = CFrame.new(61163.8515625, 11.6796875, 1819.7841796875),
+        n = CFrame.new(-5247.7163085938, 12.883934020996, 8504.96875),
+        o = CFrame.new(4875.330078125, 5.6519818305969, 734.85021972656),
+        p = CFrame.new(-4813.0249, 903.708557, -1912.69055),
+        q = CFrame.new(-4970.21875, 717.707275, -2622.35449),
+    } 
+end
+
+-- Định nghĩa biến cục bộ
+local p = game.Players
+local lp = p.LocalPlayer
+local rs = game:GetService("RunService")
+local hb = rs.Heartbeat
+local rends = rs.RenderStepped
+local webhook = {} 
+
+-- === CÁC HÀM TIỆN ÍCH ===
+-- Hàm vượt qua chướng ngại
+function bypass(Pos)   
+    if not lp.Character:FindFirstChild("Head") or not lp.Character:FindFirstChild("HumanoidRootPart") or not lp.Character:FindFirstChild("Humanoid") then
+        return
+    end
     
-    if success then
+    local dist = math.huge
+    local is = nil
+    
+    for i, v in pairs(island) do
+        if (Pos.Position-v.Position).magnitude < dist then
+            is = v 
+            dist = (Pos.Position-v.Position).magnitude 
+        end
+    end 
+    
+    if is == nil then return end
+    
+    if lp:DistanceFromCharacter(Pos.Position) > distbyp then 
+        if (lp.Character.Head.Position-Pos.Position).magnitude > (is.Position-Pos.Position).magnitude then
+            if tween then
+                pcall(function() tween:Destroy() end)
+            end
+            
+            if (is.X == 61163.8515625 and is.Y == 11.6796875 and is.Z == 1819.7841796875) or 
+               is == CFrame.new(-12471.169921875 + 50, 374.94024658203, -7551.677734375) or 
+               is == CFrame.new(-5085.23681640625 + 50, 316.5072021484375, -3156.202880859375) or 
+               is == CFrame.new(5749.7861328125 + 50, 611.9736938476562, -276.2497863769531) then
+                
+                if tween then
+                   pcall(function() tween:Cancel() end)
+                end
+                
+                repeat task.wait()
+                    if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                        lp.Character.HumanoidRootPart.CFrame = is  
+                    else
+                        break
+                    end
+                until lp.Character and lp.Character.PrimaryPart and lp.Character.PrimaryPart.CFrame == is   
+                
+                task.wait(0.1)
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetSpawnPoint")
+            else
+                if not stopbypass then
+                    if tween then
+                       pcall(function() tween:Cancel() end)
+                    end
+                    
+                    repeat task.wait()
+                        if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                            lp.Character.HumanoidRootPart.CFrame = is  
+                        else
+                            break
+                        end
+                    until lp.Character and lp.Character.PrimaryPart and lp.Character.PrimaryPart.CFrame == is  
+                    
+                    pcall(function()
+                        game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid"):ChangeState(15)
+                        lp.Character:SetPrimaryPartCFrame(is)
+                        wait(0.1)
+                        if lp.Character and lp.Character:FindFirstChild("Head") then
+                            lp.Character.Head:Destroy()
+                        end
+                        wait(0.5)
+                        
+                        repeat task.wait()
+                            if lp.Character and lp.Character:FindFirstChild("PrimaryPart") then
+                                lp.Character.PrimaryPart.CFrame = is  
+                            else
+                                break
+                            end
+                        until lp.Character and lp.Character:FindFirstChild("Humanoid") and lp.Character.Humanoid.Health > 0
+                        
+                        task.wait(0.5)
+                    end)
+                end 
+            end
+        end
+    end
+end
+
+-- Hàm di chuyển (tween)
+function to(Pos)
+    pcall(function()
+        if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") and lp.Character:FindFirstChild("Humanoid") and lp.Character.Humanoid.Health > 0 then
+            local Distance = (Pos.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            
+            if not game.Players.LocalPlayer.Character.PrimaryPart:FindFirstChild("Hold") then
+                local Hold = Instance.new("BodyVelocity", game.Players.LocalPlayer.Character.PrimaryPart)
+                Hold.Name = "Hold"
+                Hold.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                Hold.Velocity = Vector3.new(0, 0, 0)
+            end
+            
+            if game.Players.LocalPlayer.Character.Humanoid.Sit == true then
+                game.Players.LocalPlayer.Character.Humanoid.Sit = false
+            end
+            
+            local Speed
+            if Distance <= 250 then
+                if tween then tween:Cancel() end
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Pos
+            elseif Distance < 1000 then
+                Speed = 375
+            elseif Distance >= 1000 then
+                Speed = 350
+            end
+
+
+            
+            pcall(function()
+                tween = game:GetService("TweenService"):Create(
+                    game.Players.LocalPlayer.Character.HumanoidRootPart,
+                    TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear),
+                    {CFrame = Pos}
+                )
+                tween:Play()
+            end)
+            
+            if game.Players.LocalPlayer.PlayerGui:FindFirstChild("Main") and 
+               game.Players.LocalPlayer.PlayerGui.Main:FindFirstChild("InCombat") and
+               game.Players.LocalPlayer.PlayerGui.Main.InCombat.Visible then
+                if not string.find(string.lower(game.Players.LocalPlayer.PlayerGui.Main.InCombat.Text), "risk") then
+                   
+                else
+                    local dist = math.huge
+                    local is = nil
+                    
+                    for i, v in pairs(island) do
+                        if (Pos.Position-v.Position).magnitude < dist then
+                            is = v 
+                            dist = (Pos.Position-v.Position).magnitude 
+                        end
+                    end 
+                    
+                    if is == nil then return end
+                    
+                    if lp:DistanceFromCharacter(Pos.Position) > distbyp then 
+                        if (lp.Character.Head.Position-Pos.Position).magnitude > (is.Position-Pos.Position).magnitude then
+                            if tween then
+                                pcall(function() tween:Destroy() end)
+                            end
+                            
+                            if (is.X == 61163.8515625 and is.Y == 11.6796875 and is.Z == 1819.7841796875) or 
+                               is == CFrame.new(-12471.169921875 + 50, 374.94024658203, -7551.677734375) or 
+                               is == CFrame.new(-5085.23681640625 + 50, 316.5072021484375, -3156.202880859375) or 
+                               is == CFrame.new(5749.7861328125 + 50, 611.9736938476562, -276.2497863769531) then
+                                
+                                if tween then
+                                   pcall(function() tween:Cancel() end)
+                                end
+                                
+                                repeat task.wait()
+                                    if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                                        lp.Character.HumanoidRootPart.CFrame = is  
+                                    else
+                                        break
+                                    end
+                                until lp.Character and lp.Character.PrimaryPart and lp.Character.PrimaryPart.CFrame == is   
+                                
+                                task.wait(0.1)
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetSpawnPoint")
+                            end
+                        end
+                    end
+                end
+            else
+                
+            end
+            
+            if game.Players.LocalPlayer.Character.Humanoid.Sit == true then
+                game.Players.LocalPlayer.Character.Humanoid.Sit = false
+            end
+            
+            if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.X, 
+                    Pos.Y, 
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.Z
+                )
+            end
+        end
+    end)
+end
+
+-- Hàm sử dụng Buso (Haki)
+function buso()
+    if lp.Character and not lp.Character:FindFirstChild("HasBuso") then
+        game.ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
+    end
+end
+
+-- Hàm sử dụng Ken (Observation Haki)
+function Ken()
+    if game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui") and 
+       game.Players.LocalPlayer.PlayerGui:FindFirstChild("ScreenGui") and 
+       game.Players.LocalPlayer.PlayerGui.ScreenGui:FindFirstChild("ImageLabel") then
         return true
     else
-        warn("❌ Failed to save config:", error)
+        game:service("VirtualUser"):CaptureController()
+        game:service("VirtualUser"):SetKeyDown("0x65")
+        game:service("VirtualUser"):SetKeyUp("0x65")
         return false
     end
 end
 
--- Update satu setting sahaja
-function ConfigSystem:UpdateSetting(config, key, value)
-    config[key] = value
-    self:Save(config)
+-- Hàm nhấn phím
+function down(use, wait)
+    pcall(function()
+        if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+            game:GetService("VirtualInputManager"):SendKeyEvent(true, use, false, game.Players.LocalPlayer.Character.HumanoidRootPart)
+            task.wait((wait or 0.1))
+            game:GetService("VirtualInputManager"):SendKeyEvent(false, use, false, game.Players.LocalPlayer.Character.HumanoidRootPart)
+        end
+    end)
 end
 
--- ==================== NOTIFICATION SYSTEM ====================
-local NotificationGui = nil
-local DEFAULT_NOTIFICATION_SOUND_ID = 3398620867 -- ID untuk bunyi 'ding' default
-
--- Function untuk mencipta NotificationGui (dipanggil sekali sahaja)
-local function createNotificationGui()
-    if NotificationGui then return end -- Jika sudah wujud, jangan cipta lagi
+-- Hàm trang bị vũ khí
+function equip(tooltip)
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:wait()
     
-    -- Dapatkan parent yang selamat untuk notifikasi juga
-    local safeParent = getSafeCoreGuiParent()
-    
-    NotificationGui = Instance.new("ScreenGui")
-    NotificationGui.Name = "NightmareNotificationGui"
-    NotificationGui.ResetOnSpawn = false
-    NotificationGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    NotificationGui.Parent = safeParent
+    for _, item in pairs(player.Backpack:GetChildren()) do
+        if item:IsA("Tool") and item.ToolTip == tooltip then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid and not humanoid:IsDescendantOf(item) then
+                game.Players.LocalPlayer.Character.Humanoid:EquipTool(item)
+                return true
+            end
+        end
+    end
+    return false
 end
 
--- ==================== UTILITY SYSTEM VARIABLES ====================
-local UtilityFrame = nil
-local UtilityScrollFrame = nil
-local UtilityListLayout = nil
+function EquipWeapon(Tool)
+    pcall(function()
+        if game.Players.LocalPlayer.Backpack:FindFirstChild(Tool) then
+            local ToolHumanoid = game.Players.LocalPlayer.Backpack:FindFirstChild(Tool)
+            if ToolHumanoid then
+                ToolHumanoid.Parent = game.Players.LocalPlayer.Character
+            end
+        end
+    end)
+end
 
--- Anti-Lag Variables
-local antiLagRunning = false
-local antiLagConnections = {}
-local cleanedCharacters = {}
+-- Hàm click
+function Click()
+    game:GetService("VirtualUser"):CaptureController()
+    game:GetService("VirtualUser"):Button1Down(Vector2.new(0,1,0,1))
+end
 
--- Unlock Nearest Variables
-local unlockNearestUI = nil
+-- === CHUẨN BỊ GAME ===
+-- No Clip
+spawn(function()
+    while game:GetService("RunService").Stepped:wait() do
+        pcall(function()
+            if lp.Character then
+                for _, v in pairs(lp.Character:GetChildren()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                    end
+                end
+            end
+        end)
+    end
+end)
 
--- ==================== UTILITY FUNCTIONS ====================
-local function destroyAllEquippableItems(character)
-    if not character then return end
-    if not antiLagRunning then return end
+-- Boots FPS
+if getgenv().Setting.Another.FPSBoots then
+    local removedecals = false
+    local g = game
+    local w = g.Workspace
+    local l = g.Lighting
+    local t = w.Terrain
+    t.WaterWaveSize = 0
+    t.WaterWaveSpeed = 0
+    t.WaterReflectance = 0
+    t.WaterTransparency = 0
+    l.GlobalShadows = false
+    l.FogEnd = 9e9
+    l.Brightness = 0
+    settings().Rendering.QualityLevel = "Level01"
+    
+    for i, v in pairs(g:GetDescendants()) do
+        if v:IsA("Part") or v:IsA("Union") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") then
+            v.Material = "Plastic"
+            v.Reflectance = 0
+        elseif v:IsA("Decal") or v:IsA("Texture") and removedecals then
+            v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Lifetime = NumberRange.new(0)
+        elseif v:IsA("Explosion") then
+            v.BlastPressure = 1
+            v.BlastRadius = 1
+        elseif v:IsA("Fire") or v:IsA("SpotLight") or v:IsA("Smoke") or v:IsA("Sparkles") then
+            v.Enabled = false
+        elseif v:IsA("MeshPart") then
+            v.Material = "Plastic"
+            v.Reflectance = 0
+            v.TextureID = 10385902758728957
+        end
+    end
+    
+    for i, e in pairs(l:GetChildren()) do
+        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+            e.Enabled = false
+        end
+    end
+end
+
+-- Loại bỏ đối tượng
+function ObjectRemove()
+    for i, v in pairs(workspace:GetDescendants()) do
+        if string.find(v.Name,"Tree") or string.find(v.Name,"House") then
+            pcall(function() v:Destroy() end)
+        end
+    end
+end
+
+-- Đối tượng vô hình
+function InvisibleObject()
+    for i, v in pairs(game:GetService("Workspace"):GetDescendants()) do
+        if (v:IsA("Part") or v:IsA("MeshPart") or v:IsA("BasePart")) and v.Transparency then
+            v.Transparency = 1
+        end
+    end
+    
+    spawn(function()
+        pcall(function()
+            if game.ReplicatedStorage.Effect.Container:FindFirstChild("Death") then
+                game.ReplicatedStorage.Effect.Container.Death:Destroy()
+            end
+            if game.ReplicatedStorage.Effect.Container:FindFirstChild("Respawn") then
+                game.ReplicatedStorage.Effect.Container.Respawn:Destroy()
+            end
+            if game.ReplicatedStorage.Effect.Container:FindFirstChild("Hit") then
+                game.ReplicatedStorage.Effect.Container.Hit:Destroy()
+            end
+        end)
+    end)
+end
+
+ObjectRemove()
+InvisibleObject()
+
+-- White Screen
+if getgenv().Setting.Another.WhiteScreen then
+    game:GetService("RunService"):Set3dRenderingEnabled(false)
+end	
+
+-- === HÀM CHÍNH AUTO BOUNTY ===
+-- Kiểm tra fruit
+function hasValue(array, targetString)
+    if not array then return false end
+    for _, value in ipairs(array) do
+        if value == targetString then
+            return true
+        end
+    end
+    return false
+end
+
+-- Fast Attack
+if getgenv().Setting.Click.FastClick then
+    local fastattack = true
+    local y = nil
+    
+    -- Cố gắng lấy CombatFramework
+    pcall(function()
+        local CameraShaker = require(game.ReplicatedStorage.Util.CameraShaker)
+        if CameraShaker then
+            CameraShaker:Stop()
+        end
+        
+        if game:GetService("Players").LocalPlayer:FindFirstChild("PlayerScripts") then
+            local success, result = pcall(function()
+                return require(game:GetService("Players").LocalPlayer.PlayerScripts:FindFirstChild("CombatFramework"))
+            end)
+            
+            if success and result then
+                local getCombatFramework = result
+                local getCombatFrameworkR = debug.getupvalues(getCombatFramework)[2]
+                y = getCombatFrameworkR
+            end
+        end
+    end)
+    
+    spawn(function()
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if fastattack and y and typeof(y) == "table" then
+                pcall(function()
+                    if y.activeController then
+                        y.activeController.timeToNextAttack = 0
+                        y.activeController.hitboxMagnitude = 60
+                        y.activeController.active = false
+                        y.activeController.timeToNextBlock = 0
+                        y.activeController.focusStart = 1655503339.0980349
+                        y.activeController.increment = 1
+                        y.activeController.blocking = false
+                        y.activeController.attacking = false
+                        if y.activeController.humanoid then
+                            y.activeController.humanoid.AutoRotate = true
+                        end
+                    end
+                end)
+            end
+        end)
+    end)
+    
+    spawn(function()
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if fastattack == true and lp and lp.Character then
+                if lp.Character:FindFirstChild("Stun") then
+                    lp.Character.Stun.Value = 0
+                end
+                if lp.Character:FindFirstChild("Busy") then
+                    lp.Character.Busy.Value = false 
+                end
+            end
+        end)
+    end)
+else
+    local y = nil
+    
+    -- Cố gắng lấy CombatFramework
+    pcall(function()
+        if game:GetService("Players").LocalPlayer:FindFirstChild("PlayerScripts") then
+            local success, result = pcall(function()
+                return require(game:GetService("Players").LocalPlayer.PlayerScripts:FindFirstChild("CombatFramework"))
+            end)
+            
+            if success and result then
+                local getCombatFramework = result
+                local getCombatFrameworkR = debug.getupvalues(getCombatFramework)[2]
+                y = getCombatFrameworkR
+            end
+        end
+    end)
+    
+    spawn(function()
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if y and typeof(y) == "table" then
+                pcall(function()
+                    if y.activeController then
+                        y.activeController.hitboxMagnitude = 60
+                        y.activeController.active = false
+                        y.activeController.timeToNextBlock = 0
+                        y.activeController.focusStart = 1655503339.0980349
+                        y.activeController.increment = 1
+                        y.activeController.blocking = false
+                        y.activeController.attacking = false
+                        if y.activeController.humanoid then
+                            y.activeController.humanoid.AutoRotate = true
+                        end
+                    end
+                end)
+            end
+        end)
+    end)
+end
+
+-- Circle
+local radius = 25
+local speedCircle = 30
+local angle = 0
+local yTween = 5
+local function getNextPosition(center)
+    angle = angle + speedCircle
+    return center + Vector3.new(math.sin(math.rad(angle)) * radius, yTween, math.cos(math.rad(angle)) * radius)
+end
+
+-- Hop Server
+local hopserver = false
+local starthop = false
+local stopbypass = false
+
+spawn(function()
+    while task.wait() do
+        if hopserver then
+            stopbypass = true
+            starthop = true
+        end
+    end
+end)
+
+spawn(function()
+    while task.wait() do
+        if starthop then
+            repeat task.wait()
+                if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                    to(lp.Character.HumanoidRootPart.CFrame*CFrame.new(0, math.random(500, 10000), 0))
+                end
+            until (lp.PlayerGui and lp.PlayerGui:FindFirstChild("Main") and 
+                  lp.PlayerGui.Main:FindFirstChild("InCombat") and
+                  lp.PlayerGui.Main.InCombat.Visible and 
+                  not string.find(string.lower(lp.PlayerGui.Main.InCombat.Text), "risk")) or 
+                  (lp.PlayerGui and lp.PlayerGui:FindFirstChild("Main") and
+                  lp.PlayerGui.Main:FindFirstChild("InCombat") and 
+                  not lp.PlayerGui.Main.InCombat.Visible)
+            
+            if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                to(CFrame.new(0, 10000, 0))
+            end
+            
+            HopServer()
+            
+            if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                to(lp.Character.HumanoidRootPart.CFrame*CFrame.new(0, math.random(500, 10000), 0))
+            end
+        end
+    end
+end)
+
+-- Hàm chuyển server
+function CheckInComBat()
+    return game.Players.LocalPlayer.PlayerGui.Main.BottomHUDList.InCombat.Visible and game.Players.LocalPlayer.PlayerGui.Main.BottomHUDList.InCombat.Text and (string.find(string.lower(game.Players.LocalPlayer.PlayerGui.Main.BottomHUDList.InCombat.Text),"risk"))
+end 
+function HopServer(counts)
+    if counts == nil then
+        counts = 10
+    end
+    local function nigga(v)
+        if v.Name == "ErrorPrompt" then
+            if v.Visible then
+                if v.TitleFrame.ErrorTitle.Text == "Teleport Failed" then
+                    v.Visible = false
+                end
+            end
+            v:GetPropertyChangedSignal("Visible"):Connect(
+                function()
+                    if v.Visible then
+                        if v.TitleFrame.ErrorTitle.Text == "Teleport Failed" then
+                            v.Visible = false
+                        end
+                    end
+                end
+            )
+        end
+    end
+    for i, v in game.CoreGui.RobloxPromptGui.promptOverlay:GetChildren() do
+        nigga(v)
+    end
+    game.CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(nigga)
+    game:GetService("Players").LocalPlayer.PlayerGui.ServerBrowser.Frame.Filters.SearchRegion.TextBox.Text = "Singapore"
+    while wait() do
+        if not CheckInComBat() then
+            for r = 1, math.huge do
+                for k, v in game.ReplicatedStorage.__ServerBrowser:InvokeServer(r) do
+                    if k ~= game.JobId and v["Count"] <= counts then
+                        game.ReplicatedStorage.__ServerBrowser:InvokeServer("teleport", k)
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Đăng ký hàm HopServer cho UI
+getgenv().HopServer = HopServer
+
+-- Skip Player
+function SkipPlayer()
+    UI.ShowNotification("Đã bỏ qua người chơi", "warning")
+    
+    getgenv().killed = getgenv().targ 
+    if getgenv().targ then
+        table.insert(getgenv().checked, getgenv().targ)
+    end
+    getgenv().targ = nil
+    UI.SetTarget("None")
+    target()
+end
+
+-- Đăng ký hàm SkipPlayer cho UI
+getgenv().SkipPlayer = SkipPlayer
+
+-- Target Selection
+function target() 
+    pcall(function()
+        UI.ShowNotification("Đang tìm mục tiêu mới...", "info")
+        
+        local d = math.huge
+        local p = nil
+        getgenv().targ = nil
+        
+        for _, v in pairs(game.Players:GetPlayers()) do 
+            if v.Team ~= nil and (tostring(lp.Team) == "Pirates" or (tostring(v.Team) == "Pirates" and tostring(lp.Team) ~= "Pirates")) then
+                if v and v:FindFirstChild("Data") and ((getgenv().Setting.Skip.Fruit and hasValue(getgenv().Setting.Skip.FruitList, v.Data.DevilFruit.Value) == false) or not getgenv().Setting.Skip.Fruit) then
+                    if v ~= lp and v ~= getgenv().targ and 
+                       v.Character and v.Character:FindFirstChild("HumanoidRootPart") and
+                       (v.Character.HumanoidRootPart.CFrame.Position - lp.Character.HumanoidRootPart.CFrame.Position).Magnitude < d and 
+                       not hasValue(getgenv().checked, v) and 
+                       v.Character.HumanoidRootPart.CFrame.Y <= 12000 then
+                        
+                        if (tonumber(lp.Data.Level.Value) - 250) < v.Data.Level.Value then
+                            if v.leaderstats["Bounty/Honor"] and 
+                               v.leaderstats["Bounty/Honor"].Value >= getgenv().Setting.Hunt.Min and 
+                               v.leaderstats["Bounty/Honor"].Value <= getgenv().Setting.Hunt.Max and 
+                               not hopserver then 
+                                
+                                if (getgenv().Setting.Skip.V4 and not v.Character:FindFirstChild("RaceTransformed")) or not getgenv().Setting.Skip.V4 then
+                                    p = v 
+                                    d = (v.Character.HumanoidRootPart.CFrame.Position - lp.Character.HumanoidRootPart.CFrame.Position).Magnitude 
+                                    
+                                    if getgenv().Setting.Chat.Enabled and getgenv().Setting.Chat.List and #getgenv().Setting.Chat.List > 0 then
+                                        local chatMsg = getgenv().Setting.Chat.List[math.random(1, #getgenv().Setting.Chat.List)]
+                                        if chatMsg then
+                                            game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):FindFirstChild("SayMessageRequest"):FireServer(chatMsg, "All")
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end 
+                end
+            end
+        end 
+        
+        if p == nil then 
+            HopServer()
+            UI.ShowNotification("Không tìm thấy mục tiêu, đang chuyển server...", "warning")
+        else
+            UI.ShowNotification("Đã tìm thấy mục tiêu: " .. p.Name, "success")
+            UI.SetTarget(p.Name)
+        end
+        
+        getgenv().targ = p
+        UI.UpdateTargetsList()
+    end)
+end
+function CheckSafeZone(nitga)
+    for r, v in pairs(workspace['_WorldOrigin']['SafeZones']:GetChildren()) do
+        if v and v:IsA("Part") then
+            if (v.Position - nitga.Position).Magnitude <= 400 then
+                return true
+            end
+        end
+    end
+    return false
+end
+-- Kết nối Ken khi gần với mục tiêu
+spawn(function()
+    while wait() do
+        pcall(function()
+            if getgenv().targ and getgenv().targ.Character and lp.Character and
+               (getgenv().targ.Character.HumanoidRootPart.CFrame.Position - lp.Character.HumanoidRootPart.CFrame.Position).Magnitude < 40 then
+                Ken()
+            end
+        end)
+    end
+end)
+
+-- Logic xoay vòng vũ khí
+local gunmethod = getgenv().Setting.Gun.GunMode
+local melee, gun, sword, fruit
+
+spawn(function()
+    while task.wait() do
+        pcall(function()
+            if getgenv().targ and getgenv().targ.Character and getgenv().targ.Character:FindFirstChild("HumanoidRootPart") and 
+               lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                
+                if (getgenv().targ.Character:WaitForChild("HumanoidRootPart").CFrame.Position - lp.Character:WaitForChild("HumanoidRootPart").CFrame.Position).Magnitude < 40 then 
+                    if not gunmethod then
+                        if getgenv().Setting.Melee.Enable then
+                            getgenv().weapon = "Melee"
+                            wait(getgenv().Setting.Melee.Delay or 0.1)
+                        end
+                        if getgenv().Setting.Fruit.Enable then
+                            getgenv().weapon = "Blox Fruit"
+                            wait(getgenv().Setting.Fruit.Delay or 0.1)
+                        end
+                        if getgenv().Setting.Sword.Enable then
+                            getgenv().weapon = "Sword"
+                            wait(getgenv().Setting.Sword.Delay or 0.1)
+                        end
+                        if getgenv().Setting.Gun.Enable then
+                            getgenv().weapon = "Gun"
+                            wait(getgenv().Setting.Gun.Delay or 0.1)
+                        end
+                    else
+                        pcall(function()
+                            EquipWeapon("Melee")
+                            EquipWeapon("Gun")
+                        end)
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+-- PvP và khả năng đặc biệt
+spawn(function()
+    while task.wait() do 
+        pcall(function()
+            if game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Main") and
+               game:GetService("Players").LocalPlayer.PlayerGui.Main:FindFirstChild("PvpDisabled") and
+               game:GetService("Players").LocalPlayer.PlayerGui.Main.PvpDisabled.Visible == true then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("EnablePvp")
+            end
+            
+            if getgenv().targ and getgenv().targ.Character and lp.Character and
+               (getgenv().targ.Character.HumanoidRootPart.CFrame.Position - lp.Character.HumanoidRootPart.CFrame.Position).Magnitude < 50 then
+                buso()
+                
+                if getgenv().Setting.Another.V3 then
+                    if getgenv().Setting.Another.CustomHealth and 
+                       lp.Character.Humanoid.Health <= getgenv().Setting.Another.Health then
+                        l = 0.1
+                        down("T")
+                    end
+                end
+                
+                if getgenv().Setting.Another.V4 then
+                    l = 0.1
+                    down("Y")
+                end   
+            end
+        end)
+    end
+end)
+
+-- Logic chiến đấu
+spawn(function()
+    while task.wait() do
+        if not getgenv().targ or not getgenv().targ.Character then target() end
+        if not getgenv().targ then hopserver = true end 
+        
+        pcall(function()
+            if getgenv().targ.Character and getgenv().targ.Character:FindFirstChild("HumanoidRootPart") and 
+               lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                
+                if (getgenv().targ.Character:WaitForChild("HumanoidRootPart").CFrame.Position - lp.Character:WaitForChild("HumanoidRootPart").CFrame.Position).Magnitude < 40 then 
+                    spawn(function()
+                        if not gunmethod then
+                            pcall(function() EquipWeapon("Summon Sea Beast") end)
+                            equip(getgenv().weapon)
+                            
+                            for _, v in pairs(lp.Character:GetChildren()) do 
+                                if v:IsA("Tool") then
+                                    if v.ToolTip == "Melee" then
+                                        if getgenv().Setting.Melee.Enable then
+                                            if lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("Z") and
+                                               lp.PlayerGui.Main.Skills[v.Name].Z.Cooldown.AbsoluteSize.X <= 0 and 
+                                               getgenv().Setting.Melee.Z.Enable then	
+                                                hold = getgenv().Setting.Melee.Z.HoldTime
+                                                down("Z", hold)
+                                            elseif lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("X") and
+                                                   lp.PlayerGui.Main.Skills[v.Name].X.Cooldown.AbsoluteSize.X <= 0 and 
+                                                   getgenv().Setting.Melee.X.Enable then	
+                                                l = getgenv().Setting.Melee.X.HoldTime
+                                                down("X", l)
+                                            elseif lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("C") and
+                                                   lp.PlayerGui.Main.Skills[v.Name].C.Cooldown.AbsoluteSize.X <= 0 and 
+                                                   getgenv().Setting.Melee.C.Enable then	
+                                                l = getgenv().Setting.Melee.C.HoldTime
+                                                down("C", l)
+                                            elseif getgenv().Setting.Melee.V.Enable and
+                                                   lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("V") and
+                                                   lp.PlayerGui.Main.Skills[v.Name].V.Cooldown.AbsoluteSize.X <= 0 then	
+                                                l = getgenv().Setting.Melee.V.HoldTime
+                                                down("V", l)
+                                            else
+                                                Click()
+                                            end
+                                        end
+                                    elseif v.ToolTip == "Gun" then
+                                        if getgenv().Setting.Gun.Enable then
+                                            if lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("Z") and
+                                               lp.PlayerGui.Main.Skills[v.Name].Z.Cooldown.AbsoluteSize.X <= 0 and 
+                                               getgenv().Setting.Gun.Z.Enable then	
+                                                l = getgenv().Setting.Gun.Z.HoldTime
+                                                down("Z", l)
+                                            elseif lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("X") and
+                                                   lp.PlayerGui.Main.Skills[v.Name].X.Cooldown.AbsoluteSize.X <= 0 and 
+                                                   getgenv().Setting.Gun.X.Enable then	
+                                                l = getgenv().Setting.Gun.X.HoldTime
+                                                down("X", l)
+                                            else
+                                                Click()
+                                            end
+                                        end
+                                    elseif v.ToolTip == "Sword" then
+                                        if getgenv().Setting.Sword.Enable then
+                                            if lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("Z") and
+                                               lp.PlayerGui.Main.Skills[v.Name].Z.Cooldown.AbsoluteSize.X <= 0 and 
+                                               getgenv().Setting.Sword.Z.Enable then	
+                                                l = getgenv().Setting.Sword.Z.HoldTime
+                                                down("Z", l)
+                                            elseif lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("X") and
+                                                   lp.PlayerGui.Main.Skills[v.Name].X.Cooldown.AbsoluteSize.X <= 0 and 
+                                                   getgenv().Setting.Sword.X.Enable then	
+                                                l = getgenv().Setting.Sword.X.HoldTime
+                                                down("X", l)
+                                            else
+                                                Click()
+                                            end
+                                        end
+                                    elseif v.ToolTip == "Blox Fruit" then
+                                        if getgenv().Setting.Fruit.Enable then
+                                            if lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("Z") and
+                                               lp.PlayerGui.Main.Skills[v.Name].Z.Cooldown.AbsoluteSize.X <= 0 and 
+                                               getgenv().Setting.Fruit.Z.Enable then	
+                                                l = getgenv().Setting.Fruit.Z.HoldTime
+                                                down("Z", l)
+                                            elseif lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("X") and
+                                                   lp.PlayerGui.Main.Skills[v.Name].X.Cooldown.AbsoluteSize.X <= 0 and 
+                                                   getgenv().Setting.Fruit.X.Enable then	
+                                                l = getgenv().Setting.Fruit.X.HoldTime
+                                                down("X", l)
+                                            elseif lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("C") and
+                                                   lp.PlayerGui.Main.Skills[v.Name].C.Cooldown.AbsoluteSize.X <= 0 and 
+                                                   getgenv().Setting.Fruit.C.Enable then	
+                                                l = getgenv().Setting.Fruit.C.HoldTime
+                                                down("C", l)
+                                            elseif lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("V") and
+                                                   lp.PlayerGui.Main.Skills[v.Name].V.Cooldown.AbsoluteSize.X <= 0 and 
+                                                   getgenv().Setting.Fruit.V.Enable then	
+                                                l = getgenv().Setting.Fruit.V.HoldTime
+                                                down("V", l)
+                                            elseif getgenv().Setting.Fruit.F.Enable and
+                                                   lp.PlayerGui.Main.Skills[v.Name]:FindFirstChild("F") and
+                                                   lp.PlayerGui.Main.Skills[v.Name].F.Cooldown.AbsoluteSize.X <= 0 then	
+                                                l = getgenv().Setting.Fruit.F.HoldTime
+                                                down("F", l)
+                                            else
+                                                Click()
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        else
+                            if getgenv().Setting.Melee.Enable then
+                                if getgenv().Setting.Melee.Z.Enable then	
+                                    l = getgenv().Setting.Melee.Z.HoldTime
+                                    down("Z", l)
+                                elseif getgenv().Setting.Melee.X.Enable then	
+                                    l = getgenv().Setting.Melee.X.HoldTime
+                                    down("X", l)
+                                elseif getgenv().Setting.Melee.C.Enable then	
+                                    l = getgenv().Setting.Melee.C.HoldTime
+                                    down("C", l)
+                                elseif getgenv().Setting.Melee.V.Enable then	
+                                    l = getgenv().Setting.Melee.V.HoldTime
+                                    down("V", l)
+                                end
+                            end
+                            Click()
+                        end
+                        if CheckSafeZone(getgenv().targ.Character.HumanoidRootPart) or game.Players.LocalPlayer.PlayerGui.Main["[OLD]SafeZone"].Visible == true or getgenv().targ.Character.Humanoid.Sit == true then
+                            SkipPlayer()
+                        end
+                        -- Kiểm tra thông báo về cái chết của người chơi
+                        for _, v in pairs(lp.PlayerGui.Notifications:GetChildren()) do 
+                            if v:IsA("TextLabel") and (string.find(string.lower(v.Text), "player") or string.find(string.lower(v.Text), "người chơi")) then 
+                                SkipPlayer()
+                                pcall(function() v:Destroy() end)
+                            end
+                        end
+                    end)
+                end
+            end
+        end)
+    end
+end)
+
+-- Logic di chuyển và định vị
+local a, b
+local Nguvc = 5
+local helloae = false
+local safehealth = false
+
+spawn(function()
+    while task.wait(0.05) do
+        if not getgenv().targ then target() end
+        if not getgenv().targ then hopserver = true end 
+        if not game:GetService("Players").LocalPlayer.PlayerGui.Main.BottomHUDList.PvpDisabled.Visible then
+            pcall(function()
+                if getgenv().targ.Character and getgenv().targ.Character:FindFirstChild("HumanoidRootPart") and 
+                lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") and
+                lp.Character:FindFirstChild("Humanoid") then
+                    
+                    if lp.Character.Humanoid.Health > getgenv().Setting.SafeHealth.Health then
+                        pcall(function()    
+                            if not (game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild("Island 1") and 
+                                getgenv().targ:DistanceFromCharacter(game:GetService("Workspace")["_WorldOrigin"].Locations:FindFirstChild("Island 1").Position) < 10000) then
+                                workspace.CurrentCamera.CameraSubject = getgenv().targ.Character
+                                if (getgenv().targ.Character:WaitForChild("HumanoidRootPart").CFrame.Position - lp.Character:WaitForChild("HumanoidRootPart").CFrame.Position).Magnitude < 40 then 
+                                    if game:GetService("Players").LocalPlayer.PlayerGui.Main.SafeZone.Visible == true then
+                                        print("Safe Zone")
+                                        SkipPlayer()
+                                    end
+                                    if getgenv().targ.Character.Humanoid.Health > 0 then
+                                        if getgenv().Setting.Click.AlwaysClick then
+                                            Click()
+                                        end
+                                        
+                                        if helloae then
+                                            to(getgenv().targ.Character.HumanoidRootPart.CFrame * CFrame.new(0, 5, 5))
+                                        else
+                                            to(getgenv().targ.Character.HumanoidRootPart.CFrame * CFrame.new(0, 5, 5))
+                                        end
+                                    else 
+                                        print("Player Died")
+                                        SkipPlayer()
+                                    end
+                                else
+                                    if getgenv().targ.Character.Humanoid.Health > 0 then
+                                        to(getgenv().targ.Character.HumanoidRootPart.CFrame * CFrame.new(0, 5, 5))
+                                    else
+                                        print("Player Died")
+                                        SkipPlayer()
+                                    end
+                                end
+                            else
+                                print("Raid")
+                                SkipPlayer()
+                            end
+                        end)
+                        
+                        a = getgenv().targ.Character.HumanoidRootPart.Position
+                        
+                        if a ~= b then
+                            yTween = 0
+                            b = a
+                            
+                            if (getgenv().Setting.Gun.Enable and getgenv().Setting.Gun.GunMode) then
+                                Nguvc = 14
+                            else
+                                Nguvc = 15
+                            end
+                        else
+                            yTween = 5
+                            
+                            if (getgenv().Setting.Gun.Enable and getgenv().Setting.Gun.GunMode) then
+                                Nguvc = 3
+                            else
+                                Nguvc = 5
+                            end
+                        end
+                        
+                        if getgenv().targ.Character.HumanoidRootPart.CFrame.Y >= 10 then
+                            helloae = true
+                        else
+                            helloae = false
+                        end
+                    else
+                        safehealth = true
+                        
+                        if getgenv().targ.Character:FindFirstChild("HumanoidRootPart") then
+                            to(getgenv().targ.Character.HumanoidRootPart.CFrame * CFrame.new(0, math.random(5000, 100000), 0))
+                        end
+                    end
+                end
+            end)
+        else
+            game.ReplicatedStorage.Remotes.CommF_:InvokeServer("EnablePvp")
+        end
+    end
+end)
+
+-- Logic nhắm
+local aim = false
+local CFrameHunt
+
+spawn(function()
+    while task.wait() do 
+        if getgenv().targ and getgenv().targ.Character and 
+           lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") and
+           (getgenv().targ.Character:WaitForChild("HumanoidRootPart").CFrame.Position - lp.Character:WaitForChild("HumanoidRootPart").CFrame.Position).Magnitude < 40 then 
+            
+            aim = true 
+            
+            if (getgenv().Setting.Gun.Enable and getgenv().Setting.Gun.GunMode) then
+                CFrameHunt = CFrame.new(
+                    getgenv().targ.Character.HumanoidRootPart.Position + 
+                    getgenv().targ.Character.HumanoidRootPart.CFrame.LookVector * 2, 
+                    getgenv().targ.Character.HumanoidRootPart.Position
+                )
+            else
+                CFrameHunt = CFrame.new(
+                    getgenv().targ.Character.HumanoidRootPart.Position + 
+                    getgenv().targ.Character.HumanoidRootPart.CFrame.LookVector * 5, 
+                    getgenv().targ.Character.HumanoidRootPart.Position
+                )
+            end
+        else
+            aim = false
+        end
+    end
+end)
+
+-- Remote hook cho nhắm
+spawn(function()
+    local gg = getrawmetatable(game)
+    local old = gg.__namecall
+    setreadonly(gg, false)
+    
+    gg.__namecall = newcclosure(function(...)
+        local method = getnamecallmethod()
+        local args = {...}
+        
+        if tostring(method) == "FireServer" then
+            if tostring(args[1]) == "RemoteEvent" then
+                if tostring(args[2]) ~= "true" and tostring(args[2]) ~= "false" then
+                    if aim and CFrameHunt then
+                        args[2] = CFrameHunt.Position
+                        return old(unpack(args))
+                    end
+                end
+            end
+        end
+        
+        return old(...)
+    end)
+end)
+
+-- Nhắm chuột
+local Mouse = lp:GetMouse()
+
+Mouse.Button1Down:Connect(function()
+    pcall(function()
+        if getgenv().targ and aim and CFrameHunt then
+            local args = {
+                [1] = CFrameHunt.Position,
+                [2] = getgenv().targ.Character.HumanoidRootPart
+            }
+            
+            local tool = lp.Character:FindFirstChildOfClass("Tool")
+            if tool and tool:FindFirstChild("RemoteFunctionShoot") then
+                tool.RemoteFunctionShoot:InvokeServer(unpack(args))
+            end
+        end
+    end)
+end)
+
+-- Khóa camera
+spawn(function()
+    while task.wait() do
+        if getgenv().Setting.Another.LockCamera then
+            local targetPlayer = getgenv().targ
+            
+            if targetPlayer and targetPlayer.Character then
+                local targetCharacter = targetPlayer.Character
+                local camera = game.Workspace.CurrentCamera
+                
+                if targetCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") then
+                    local lookAtPos = targetCharacter.HumanoidRootPart.Position
+                    local cameraPos = camera.CFrame.Position
+                    local newLookAt = CFrame.new(cameraPos, lookAtPos)
+                    camera.CFrame = newLookAt
+                end
+            end
+        end
+    end
+end)
+
+-- Tự động tham gia lại khi mất kết nối
+game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+    if not hopserver and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+        print("Cuttay Auto Bounty | Đang vào lại!")
+        UI.ShowNotification("Bị ngắt kết nối, đang vào lại...", "warning")
+        game:GetService("TeleportService"):Teleport(game.PlaceId)
+    end
+end)
+
+-- === WEBHOOK ===
+local Urlsent = getgenv().Setting.Webhook.Url
+
+function wSend(main)
+    spawn(function()
+        local success, error = pcall(function()
+            local Data = game:GetService("HttpService"):JSONEncode(main)
+            local Head = {["content-type"] = "application/json"}
+            local Send = http_request or request or HttpPost or syn.request 
+            
+            if Send then 
+                Send({Url = Urlsent, Body = Data, Method = "POST", Headers = Head})
+            end
+        end)
+        
+        if not success then
+            print("Lỗi webhook: " .. tostring(error))
+        end
+    end)
+end 
+
+function wEarn(targ, earn, total) 
+    if getgenv().Setting.Webhook.Enabled and getgenv().killed then
+        local targetName = "Unknown"
+        if targ and targ.Name then
+            targetName = targ.Name
+        end
+        
+        local data = {
+            ["content"] = "",
+            ["embeds"] = {
+                {
+                    ["title"] = "**Cuttay Hub | Auto Bounty**",
+                    ["color"] = 3447003, -- Màu xanh dương Discord
+                    ["fields"] = {
+                        {
+                            ["name"] = "Tài khoản: ",
+                            ["value"] = "||"..game.Players.LocalPlayer.Name.."||",
+                            ["inline"] = false,
+                        },
+                        {
+                            ["name"] = "Mục tiêu: ",
+                            ["value"] = "```"..targetName.."```",
+                            ["inline"] = false,
+                        },
+                        {
+                            ["name"] = "Bounty thu được: ",
+                            ["value"] = "```Earned: "..tostring(earn).."```",
+                            ["inline"] = false,
+                        },
+                        {
+                            ["name"] = "Tổng Bounty: ",
+                            ["value"] = "```Earned: "..tostring(total).."```",
+                            ["inline"] = false,
+                        },
+                        {
+                            ["name"] = "Bounty hiện tại: ",
+                            ["value"] = "```"..(math.round((game.Players.LocalPlayer.leaderstats["Bounty/Honor"].Value / 1000000)*100)/100).."M```",
+                            ["inline"] = false,
+                        }
+                    },
+                    ["thumbnail"] = {
+                        ["url"] = "https://cdn.discordapp.com/attachments/1338107245983957013/1352284325386784850/Untitled524_20240705122146.png?ex=67dd746b&is=67dc22eb&hm=9271d0158ce1b078c61e2a5358ef80f1ff5e5619de9e159c2fe867a4a5ee734b&",
+                    },
+                    ["footer"] = {
+                        ["text"] = "Cuttay Hub - .gg/baokhanh",
+                    },
+                    ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ"),
+                }
+            }
+        }
+        
+        wSend(data)
+    end
+end
+
+-- === QUẢN LÝ CÀI ĐẶT ===
+local foldername = "Cuttay Hub Auto Bounty"
+local filename = foldername.."/Settings.json"
+
+function saveSettings()
+    local HttpService = game:GetService("HttpService")
     
     pcall(function()
-        for _, child in ipairs(character:GetChildren()) do
-            if child:IsA("Accessory") or child:IsA("Hat") then
-                child:Destroy()
-            end
+        if not isfolder(foldername) then
+            makefolder(foldername)
         end
         
-        for _, child in ipairs(character:GetChildren()) do
-            if child:IsA("Shirt") or child:IsA("Pants") or child:IsA("ShirtGraphic") then
-                child:Destroy()
-            end
-        end
-        
-        for _, child in ipairs(character:GetDescendants()) do
-            if child.ClassName == "LayeredClothing" or child.ClassName == "WrapLayer" then
-                child:Destroy()
-            end
-        end
-        
-        for _, child in ipairs(character:GetDescendants()) do
-            if child:IsA("Decal") or child:IsA("Texture") then
-                if not (child.Name == "face" and child.Parent and child.Parent.Name == "Head") then
-                    child:Destroy()
+        local json = HttpService:JSONEncode(getgenv().Setting)
+        writefile(filename, json)
+    end)
+end
+
+function loadSettings()
+    local HttpService = game:GetService("HttpService")
+    
+    pcall(function()
+        if isfolder(foldername) and isfile(filename) then
+            local settings = HttpService:JSONDecode(readfile(filename))
+            
+            -- Cập nhật cài đặt từ file
+            for category, values in pairs(settings) do
+                if getgenv().Setting[category] then
+                    for key, value in pairs(values) do
+                        getgenv().Setting[category][key] = value
+                    end
                 end
             end
         end
     end)
 end
 
-local function antiLagCleanCharacter(char)
-    if not char then return end
-    destroyAllEquippableItems(char)
-    cleanedCharacters[char] = true
+-- Tải cài đặt
+loadSettings()
+
+-- === CẬP NHẬT THỐNG KÊ ===
+local Bounty = game:GetService("Players").LocalPlayer.leaderstats["Bounty/Honor"].Value
+local Earned = 0
+local startTime = tick()
+local OldTotalEarned = _G.TotalEarn or 0
+local TotalEarned = _G.TotalEarn or 0
+
+-- Hàm định dạng số
+function FormatNumber(number)
+    if number >= 1000000 then
+        return string.format("%.2fM", number / 1000000)
+    elseif number >= 1000 then
+        return string.format("%.1fK", number / 1000)
+    else
+        return tostring(number)
+    end
 end
 
-local function antiLagDisconnectAll()
-    for _, conn in ipairs(antiLagConnections) do
-        if typeof(conn) == "RBXScriptConnection" then
-            conn:Disconnect()
-        end
-    end
-    antiLagConnections = {}
-    cleanedCharacters = {}
-end
-
-local function enableAntiLag()
-    if antiLagRunning then 
-        return false
-    end
-    
-    antiLagRunning = true
-    
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr.Character then
-            antiLagCleanCharacter(plr.Character)
-        end
-    end
-    
-    table.insert(antiLagConnections, Players.PlayerAdded:Connect(function(plr)
-        table.insert(antiLagConnections, plr.CharacterAdded:Connect(function(char)
-            if not antiLagRunning then return end
-            task.wait(0.5)
-            antiLagCleanCharacter(char)
-        end))
-    end))
-    
-    table.insert(antiLagConnections, task.spawn(function()
-        while antiLagRunning do
-            task.wait(3)
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr.Character and not cleanedCharacters[plr.Character] then
-                    antiLagCleanCharacter(plr.Character)
+-- Luồng cập nhật thống kê
+spawn(function()
+    while task.wait() do
+        pcall(function()
+            Earned = game:GetService("Players").LocalPlayer.leaderstats["Bounty/Honor"].Value - Bounty
+            
+            -- Cập nhật thời gian
+            local elapsedTime = tick() - startTime
+            local hours = math.floor(elapsedTime / 3600)
+            local minutes = math.floor((elapsedTime % 3600) / 60)
+            local seconds = math.floor(elapsedTime % 60)
+            _G.Time = elapsedTime
+            
+            -- Định dạng thời gian
+            local timeString = string.format("%02d:%02d:%02d", hours, minutes, seconds)
+            
+            -- Cập nhật UI
+            UI.UpdateStats(
+                FormatNumber(Earned),
+                FormatNumber(TotalEarned + Earned),
+                FormatNumber(game:GetService("Players").LocalPlayer.leaderstats["Bounty/Honor"].Value)
+            )
+            
+            -- Cập nhật webhook nếu cần
+            if Earned ~= 0 and TotalEarned ~= OldTotalEarned + Earned then
+                TotalEarned = OldTotalEarned + Earned
+                _G.TotalEarn = TotalEarned 
+                saveSettings()
+                
+                if getgenv().killed then
+                    wEarn(getgenv().killed, Earned, TotalEarned)
                 end
             end
-        end
-    end))
-    
-    return true
-end
-
-local function disableAntiLag()
-    if not antiLagRunning then 
-        return false
-    end
-    
-    antiLagRunning = false
-    antiLagDisconnectAll()
-    
-    return true
-end
-
--- Function to find the closest plot to the player
-local function getClosestPlot()
-    local character = LocalPlayer.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
-    local rootPart = character.HumanoidRootPart
-    
-    local plots = workspace:FindFirstChild("Plots")
-    if not plots then return nil end
-    
-    local closestPlot = nil
-    local minDistance = 35
-    
-    for _, plot in pairs(plots:GetChildren()) do
-        local plotPos = nil
-        if plot.PrimaryPart then
-            plotPos = plot.PrimaryPart.Position
-        elseif plot:FindFirstChild("Base") then
-            plotPos = plot.Base.Position
-        elseif plot:FindFirstChild("Floor") then
-            plotPos = plot.Floor.Position
-        else
-            plotPos = plot:GetPivot().Position
-        end
-        
-        if plotPos then
-            local distance = (rootPart.Position - plotPos).Magnitude
-            if distance < minDistance then
-                closestPlot = plot
-                minDistance = distance
-            end
-        end
-    end
-    
-    return closestPlot
-end
-
--- Function to recursively find all proximity prompts in an object
-local function findPrompts(instance, found)
-    for _, child in pairs(instance:GetChildren()) do
-        if child:IsA("ProximityPrompt") then
-            table.insert(found, child)
-        end
-        findPrompts(child, found)
-    end
-end
-
--- Function to interact with a specific floor number
-local function smartInteract(number)
-    local targetPlot = getClosestPlot()
-    
-    if not targetPlot then
-        Nightmare:Notify("No plot nearby!", false)
-        return
-    end
-    
-    local unlockFolder = targetPlot:FindFirstChild("Unlock")
-    if not unlockFolder then
-        Nightmare:Notify("No unlock folder found!", false)
-        return
-    end
-    
-    local unlockItems = {}
-    for _, item in pairs(unlockFolder:GetChildren()) do
-        local pos = nil
-        if item:IsA("Model") then
-            pos = item:GetPivot().Position
-        elseif item:IsA("BasePart") then
-            pos = item.Position
-        end
-        
-        if pos then
-            table.insert(unlockItems, {
-                Object = item,
-                Height = pos.Y
-            })
-        end
-    end
-    
-    table.sort(unlockItems, function(a, b)
-        return a.Height < b.Height
-    end)
-    
-    if number > #unlockItems then
-        Nightmare:Notify("Floor " .. number .. " not found!", false)
-        return
-    end
-    
-    local targetFloor = unlockItems[number].Object
-    
-    local prompts = {}
-    findPrompts(targetFloor, prompts)
-    
-    if #prompts == 0 then
-        Nightmare:Notify("No prompts found on floor " .. number, false)
-        return
-    end
-    
-    for _, prompt in pairs(prompts) do
-        fireproximityprompt(prompt)
-    end
-    
-    Nightmare:Notify("Unlocked Floor " .. number, false)
-end
-
--- Function to create the Unlock Nearest UI
-local function createUnlockNearestUI()
-    if unlockNearestUI then
-        unlockNearestUI:Destroy()
-    end
-    
-    local safeParent = getSafeCoreGuiParent()
-    
-    local unlockGui = Instance.new("ScreenGui")
-    unlockGui.Name = "UnlockBaseUI"
-    unlockGui.ResetOnSpawn = false
-    unlockGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    unlockGui.Parent = safeParent
-    
-    local unlockMainFrame = Instance.new("Frame")
-    unlockMainFrame.Size = UDim2.new(0, 90, 0, 200)
-    unlockMainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
-    unlockMainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    unlockMainFrame.BackgroundTransparency = 0.1
-    unlockMainFrame.BorderSizePixel = 0
-    unlockMainFrame.Active = true
-    unlockMainFrame.Draggable = true
-    unlockMainFrame.Parent = unlockGui
-    
-    local unlockCorner = Instance.new("UICorner")
-    unlockCorner.CornerRadius = UDim.new(0, 15)
-    unlockCorner.Parent = unlockMainFrame
-    
-    local unlockStroke = Instance.new("UIStroke")
-    unlockStroke.Color = Color3.fromRGB(255, 50, 50)
-    unlockStroke.Thickness = 2
-    unlockStroke.Parent = unlockMainFrame
-    
-    local function createFloorButton(floorNum, yPos)
-        local floorButton = Instance.new("TextButton")
-        floorButton.Size = UDim2.new(0, 75, 0, 50)
-        floorButton.Position = UDim2.new(0.5, -37.5, 0, yPos)
-        floorButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        floorButton.BorderSizePixel = 0
-        floorButton.Text = floorNum .. " Floor"
-        floorButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-        floorButton.TextSize = 18
-        floorButton.Font = Enum.Font.Arcade
-        floorButton.Parent = unlockMainFrame
-        
-        local floorCorner = Instance.new("UICorner")
-        floorCorner.CornerRadius = UDim.new(0, 10)
-        floorCorner.Parent = floorButton
-        
-        floorButton.MouseButton1Click:Connect(function()
-            local originalColor = floorButton.BackgroundColor3
-            floorButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-            
-            TweenService:Create(floorButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = originalColor
-            }):Play()
-            
-            smartInteract(floorNum)
-        end)
-        
-        floorButton.MouseEnter:Connect(function()
-            TweenService:Create(floorButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(40, 0, 0)
-            }):Play()
-        end)
-        
-        floorButton.MouseLeave:Connect(function()
-            TweenService:Create(floorButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            }):Play()
         end)
     end
-    
-    createFloorButton(1, 10)
-    createFloorButton(2, 70)
-    createFloorButton(3, 130)
-    
-    unlockNearestUI = unlockGui
-end
+end)
 
--- Function to destroy the Unlock Nearest UI
-local function destroyUnlockNearestUI()
-    if unlockNearestUI then
-        unlockNearestUI:Destroy()
-        unlockNearestUI = nil
+-- Lưu cài đặt định kỳ
+spawn(function()
+    while task.wait(10) do
+        saveSettings()
     end
-end
+end)
 
--- ==================== UI VARIABLES ====================
-local ScreenGui -- Pembolehubah untuk disimpan di luar fungsi
-local MainFrame
-local ToggleButton
-local ScrollFrame
-local ListLayout
+-- Khởi tạo danh sách người chơi
+UI.UpdateTargetsList()
 
--- ==================== CREATE UI ====================
-function Nightmare:CreateUI()
-    -- Load config awal-awal
-    self.Config = ConfigSystem:Load()
-
-    -- Cleanup: Hapus UI lama jika wujud
-    if ScreenGui then
-        ScreenGui:Destroy()
-        ScreenGui = nil
-    end
-
-    -- Dapatkan parent yang selamat
-    local safeParent = getSafeCoreGuiParent()
-
-    -- ScreenGui
-    ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "Nightmare"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.Parent = safeParent
-
-    -- Toggle Button
-    ToggleButton = Instance.new("ImageButton")
-    ToggleButton.Size = UDim2.new(0, 60, 0, 60)
-    ToggleButton.Position = UDim2.new(0, 20, 0.5, -30)
-    ToggleButton.BackgroundTransparency = 1
-    ToggleButton.Image = "rbxassetid://121996261654076"
-    ToggleButton.Active = true
-    ToggleButton.Draggable = true
-    ToggleButton.Parent = ScreenGui
-
-    -- Main Frame
-    MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 240, 0, 380)
-    MainFrame.Position = UDim2.new(0.5, -120, 0.5, -190)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    MainFrame.BackgroundTransparency = 0.1
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Active = true
-    MainFrame.Draggable = true
-    MainFrame.Visible = false
-    MainFrame.Parent = ScreenGui
-
-    -- Styling
-    local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 15)
-    mainCorner.Parent = MainFrame
-
-    local mainStroke = Instance.new("UIStroke")
-    mainStroke.Color = Color3.fromRGB(255, 50, 50)
-    mainStroke.Thickness = 1
-    mainStroke.Parent = MainFrame
-
-    -- Title Label
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0, 45)
-    titleLabel.Position = UDim2.new(0, 0, 0, 5)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "ttk : @N1ghtmare.gg"
-    titleLabel.TextColor3 = Color3.fromRGB(139, 0, 0)
-    titleLabel.TextSize = 16
-    titleLabel.Font = Enum.Font.Arcade
-    titleLabel.Parent = MainFrame
-
-    -- ScrollingFrame
-    ScrollFrame = Instance.new("ScrollingFrame")
-    ScrollFrame.Size = UDim2.new(1, -20, 1, -125)
-    ScrollFrame.Position = UDim2.new(0, 10, 0, 55)
-    ScrollFrame.BackgroundTransparency = 1
-    ScrollFrame.BorderSizePixel = 0
-    ScrollFrame.ScrollBarThickness = 4
-    ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 50, 50)
-    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    ScrollFrame.Parent = MainFrame
-
-    ListLayout = Instance.new("UIListLayout")
-    ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ListLayout.Padding = UDim.new(0, 10)
-    ListLayout.FillDirection = Enum.FillDirection.Vertical
-    ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    ListLayout.Parent = ScrollFrame
-
-    ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 10)
-    end)
-
-    -- ==================== UTILITY UI ====================
-    UtilityFrame = Instance.new("Frame")
-    UtilityFrame.Size = UDim2.new(0, 220, 0, 300)
-    UtilityFrame.Position = UDim2.new(0.5, -110, 0.5, -150)
-    UtilityFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    UtilityFrame.BackgroundTransparency = 0.1
-    UtilityFrame.BorderSizePixel = 0
-    UtilityFrame.Active = true
-    UtilityFrame.Draggable = true
-    UtilityFrame.Visible = false
-    UtilityFrame.Parent = ScreenGui
-
-    local utilityCorner = Instance.new("UICorner")
-    utilityCorner.CornerRadius = UDim.new(0, 15)
-    utilityCorner.Parent = UtilityFrame
-
-    local utilityStroke = Instance.new("UIStroke")
-    utilityStroke.Color = Color3.fromRGB(255, 50, 50)
-    utilityStroke.Thickness = 1
-    utilityStroke.Parent = UtilityFrame
-
-    -- Utility Title
-    local utilityTitle = Instance.new("TextLabel")
-    utilityTitle.Size = UDim2.new(1, 0, 0, 40)
-    utilityTitle.Position = UDim2.new(0, 0, 0, 5)
-    utilityTitle.BackgroundTransparency = 1
-    utilityTitle.Text = "Utility"
-    utilityTitle.TextColor3 = Color3.fromRGB(139, 0, 0)
-    utilityTitle.TextSize = 15
-    utilityTitle.Font = Enum.Font.Arcade
-    utilityTitle.Parent = UtilityFrame
-
-    UtilityScrollFrame = Instance.new("ScrollingFrame")
-    UtilityScrollFrame.Size = UDim2.new(1, -20, 1, -55)
-    UtilityScrollFrame.Position = UDim2.new(0, 10, 0, 45)
-    UtilityScrollFrame.BackgroundTransparency = 1
-    UtilityScrollFrame.BorderSizePixel = 0
-    UtilityScrollFrame.ScrollBarThickness = 4
-    UtilityScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 50, 50)
-    UtilityScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    UtilityScrollFrame.Parent = UtilityFrame
-
-    UtilityListLayout = Instance.new("UIListLayout")
-    UtilityListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    UtilityListLayout.Padding = UDim.new(0, 8)
-    UtilityListLayout.FillDirection = Enum.FillDirection.Vertical
-    UtilityListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    UtilityListLayout.Parent = UtilityScrollFrame
-
-    UtilityListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        UtilityScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UtilityListLayout.AbsoluteContentSize.Y + 10)
-    end)
-
-    -- Divider
-    local divider = Instance.new("Frame")
-    divider.Size = UDim2.new(1, -20, 0, 2)
-    divider.Position = UDim2.new(0, 10, 1, -65)
-    divider.BackgroundTransparency = 1
-    divider.BorderSizePixel = 0
-    divider.Parent = MainFrame
-
-    -- Utility Button
-    local utilityButton = Instance.new("TextButton")
-    utilityButton.Size = UDim2.new(0, 100, 0, 32)
-    utilityButton.Position = UDim2.new(0, 15, 1, -55)
-    utilityButton.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
-    utilityButton.BorderSizePixel = 0
-    utilityButton.Text = "Utility"
-    utilityButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    utilityButton.TextSize = 13
-    utilityButton.Font = Enum.Font.Arcade
-    utilityButton.Parent = MainFrame
-
-    local utilityCornerBtn = Instance.new("UICorner")
-    utilityCornerBtn.CornerRadius = UDim.new(0, 8)
-    utilityCornerBtn.Parent = utilityButton
-
-    local utilityStrokeBtn = Instance.new("UIStroke")
-    utilityStrokeBtn.Color = Color3.fromRGB(255, 50, 50)
-    utilityStrokeBtn.Thickness = 1
-    utilityStrokeBtn.Parent = utilityButton
-
-    utilityButton.MouseButton1Click:Connect(function()
-        UtilityFrame.Visible = not UtilityFrame.Visible
-    end)
-
-    -- Discord Button
-    local discordButton = Instance.new("TextButton")
-    discordButton.Size = UDim2.new(0, 100, 0, 32)
-    discordButton.Position = UDim2.new(0, 125, 1, -55)
-    discordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-    discordButton.BorderSizePixel = 0
-    discordButton.Text = "  Discord"
-    discordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    discordButton.TextSize = 13
-    discordButton.Font = Enum.Font.Arcade
-    discordButton.Parent = MainFrame
-
-    local discordCorner = Instance.new("UICorner")
-    discordCorner.CornerRadius = UDim.new(0, 8)
-    discordCorner.Parent = discordButton
-
-    local discordIcon = Instance.new("ImageLabel")
-    discordIcon.Size = UDim2.new(0, 16, 0, 16)
-    discordIcon.Position = UDim2.new(0, 9, 0.5, -8)
-    discordIcon.BackgroundTransparency = 1
-    discordIcon.Image = "rbxassetid://131585302403438"
-    discordIcon.Parent = discordButton
-
-    discordButton.MouseButton1Click:Connect(function()
-        setclipboard("https://discord.gg/WB2p6Zvh")
-        discordButton.BackgroundColor3 = Color3.fromRGB(114, 137, 218)
-        task.wait(0.2)
-        discordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
-    end)
-
-    -- Toggle button functionality
-    ToggleButton.MouseButton1Click:Connect(function()
-        MainFrame.Visible = not MainFrame.Visible
-    end)
-
-    -- ==================== CREATE UTILITY TOGGLES (DIINTEGRASIKAN) ====================
-    local function createIntegratedUtilityToggle(toggleName, configKey, callback)
-        local utilityToggle = Instance.new("TextButton")
-        utilityToggle.Name = "UtilityToggle_" .. toggleName
-        utilityToggle.Size = UDim2.new(1, -10, 0, 32)
-        utilityToggle.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
-        utilityToggle.BorderSizePixel = 0
-        utilityToggle.Text = toggleName
-        utilityToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-        utilityToggle.TextSize = 12
-        utilityToggle.Font = Enum.Font.Arcade
-        utilityToggle.Parent = UtilityScrollFrame
-        
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 8)
-        btnCorner.Parent = utilityToggle
-        
-        local btnStroke = Instance.new("UIStroke")
-        btnStroke.Color = Color3.fromRGB(255, 50, 50)
-        btnStroke.Thickness = 1
-        btnStroke.Parent = utilityToggle
-        
-        -- Load initial state from config
-        local isToggled = self.Config[configKey] or false
-        if isToggled then
-            utilityToggle.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
-        end
-
-        -- Call callback on initial load
-        if callback then callback(isToggled) end
-        
-        utilityToggle.MouseButton1Click:Connect(function()
-            isToggled = not isToggled
-            
-            if isToggled then
-                utilityToggle.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
-            else
-                utilityToggle.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
-            end
-            
-            -- Save state to config
-            ConfigSystem:UpdateSetting(self.Config, configKey, isToggled)
-            
-            -- Execute callback
-            if callback then callback(isToggled) end
-        end)
-    end
-
-    -- Create the utility toggle here
-    createIntegratedUtilityToggle("Hide Skin", "Nightmare_Utility_HideSkin", function(state)
-        if state then
-            enableAntiLag()
-        else
-            disableAntiLag()
-        end
-    end)
-    
-    -- Create the Unlock Nearest toggle
-    createIntegratedUtilityToggle("Unlock Nearest", "Nightmare_Utility_UnlockNearest", function(state)
-        if state then
-            createUnlockNearestUI()
-        else
-            destroyUnlockNearestUI()
-        end
-    end)
-
-    -- Create Notification Gui at the end
-    createNotificationGui()
-
-    print("✅ Nightmare Created Successfully!")
-end
-
--- Fungsi utama untuk menunjukkan notifikasi
-function Nightmare:Notify(text, soundId)
-    if not NotificationGui then
-        createNotificationGui()
-    end
-
-    local soundToPlay = soundId or DEFAULT_NOTIFICATION_SOUND_ID
-    
-    if soundToPlay then
-        local sound = Instance.new("Sound")
-        sound.SoundId = "rbxassetid://" .. soundToPlay
-        sound.Volume = 0.4
-        sound.Parent = SoundService
-        sound:Play()
-        
-        sound.Ended:Connect(function()
-            sound:Destroy()
-        end)
-    end
-    
-    local notifFrame = Instance.new("Frame")
-    notifFrame.Size = UDim2.new(0, 300, 0, 0)
-    notifFrame.Position = UDim2.new(0.5, 0, 0, -100)
-    notifFrame.AnchorPoint = Vector2.new(0.5, 0)
-    notifFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    notifFrame.BackgroundTransparency = 0.1
-    notifFrame.BorderSizePixel = 0
-    notifFrame.Parent = NotificationGui
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = notifFrame
-    
-    local outline = Instance.new("UIStroke")
-    outline.Color = Color3.fromRGB(255, 50, 50)
-    outline.Thickness = 1.0
-    outline.Parent = notifFrame
-    
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -20, 1, 0)
-    textLabel.Position = UDim2.new(0, 10, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = text
-    textLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
-    textLabel.Font = Enum.Font.Arcade
-    textLabel.TextSize = 18
-    textLabel.TextWrapped = true
-    textLabel.TextXAlignment = Enum.TextXAlignment.Center
-    textLabel.TextYAlignment = Enum.TextYAlignment.Center
-    textLabel.Parent = notifFrame
-    
-    local targetHeight = 60
-    local targetYPosition = 20
-    
-    local tweenInfoIn = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    local goalIn = { Size = UDim2.new(0, 300, 0, targetHeight), Position = UDim2.new(0.5, 0, 0, targetYPosition) }
-    local tweenIn = TweenService:Create(notifFrame, tweenInfoIn, goalIn)
-    tweenIn:Play()
-    
-    task.spawn(function()
-        task.wait(3)
-        
-        local tweenInfoOut = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-        local goalOut = { Size = UDim2.new(0, 300, 0, 0), Position = UDim2.new(0.5, 0, 0, -100) }
-        local tweenOut = TweenService:Create(notifFrame, tweenInfoOut, goalOut)
-        tweenOut:Play()
-        
-        tweenOut.Completed:Connect(function()
-            notifFrame:Destroy()
-        end)
-    end)
-end
-
--- ==================== TOGGLE CREATION FUNCTION ====================
-function Nightmare:AddToggleRow(text1, callback1, text2, callback2)
-    local rowFrame = Instance.new("Frame")
-    rowFrame.Size = UDim2.new(1, 0, 0, 35)
-    rowFrame.BackgroundTransparency = 1
-    rowFrame.Parent = ScrollFrame
-
-    local function createSingleToggle(text, callback, position)
-        local configKey = "Nightmare_" .. text
-        local toggle = Instance.new("TextButton")
-        toggle.Size = UDim2.new(0, 100, 0, 32)
-        toggle.Position = position
-        toggle.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
-        toggle.BorderSizePixel = 0
-        toggle.Text = text
-        toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-        toggle.TextSize = 13
-        toggle.Font = Enum.Font.Arcade
-        toggle.Parent = rowFrame
-
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
-        corner.Parent = toggle
-
-        local stroke = Instance.new("UIStroke")
-        stroke.Color = Color3.fromRGB(255, 50, 50)
-        stroke.Thickness = 1
-        stroke.Parent = toggle
-
-        local isToggled = self.Config[configKey] or false
-        if isToggled then
-            toggle.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
-        end
-
-        if callback then callback(isToggled) end
-
-        toggle.MouseButton1Click:Connect(function()
-            isToggled = not isToggled
-            if isToggled then
-                toggle.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
-            else
-                toggle.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
-            end
-
-            ConfigSystem:UpdateSetting(self.Config, configKey, isToggled)
-
-            if callback then callback(isToggled) end
-        end)
-    end
-
-    createSingleToggle(text1, callback1, UDim2.new(0, 5, 0, 0))
-
-    if text2 and callback2 then
-        createSingleToggle(text2, callback2, UDim2.new(0, 115, 0, 0))
-    end
-end
-
-return Nightmare
-
-
-
--- ==================== DROPDOWN CREATION FUNCTION ====================
-function Nightmare:AddDropdown(title, options, defaultValue, callback)
-    local configKey = "Nightmare_Dropdown_" .. title
-    local selected = self.Config[configKey] or defaultValue or options[1]
-
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, -10, 0, 35)
-    container.BackgroundTransparency = 1
-    container.Parent = ScrollFrame
-
-    local mainButton = Instance.new("TextButton")
-    mainButton.Size = UDim2.new(1, 0, 0, 32)
-    mainButton.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
-    mainButton.BorderSizePixel = 0
-    mainButton.Text = title .. ": " .. tostring(selected)
-    mainButton.TextColor3 = Color3.fromRGB(255,255,255)
-    mainButton.TextSize = 13
-    mainButton.Font = Enum.Font.Arcade
-    mainButton.Parent = container
-
-    local corner = Instance.new("UICorner", mainButton)
-    corner.CornerRadius = UDim.new(0,8)
-
-    local stroke = Instance.new("UIStroke", mainButton)
-    stroke.Color = Color3.fromRGB(255,50,50)
-    stroke.Thickness = 1
-
-    local list = Instance.new("ScrollingFrame")
-    list.Size = UDim2.new(1, 0, 0, math.min(#options * 26, 120))
-    list.Position = UDim2.new(0, 0, 0, 36)
-    list.BackgroundColor3 = Color3.fromRGB(30, 0, 0)
-    list.BorderSizePixel = 0
-    list.ScrollBarThickness = 4
-    list.Visible = false
-    list.CanvasSize = UDim2.new(0,0,0,#options * 26)
-    list.Parent = container
-
-    local listCorner = Instance.new("UICorner", list)
-    listCorner.CornerRadius = UDim.new(0,8)
-
-    local layout = Instance.new("UIListLayout", list)
-    layout.Padding = UDim.new(0,4)
-
-    for _, option in ipairs(options) do
-        local opt = Instance.new("TextButton")
-        opt.Size = UDim2.new(1, -8, 0, 22)
-        opt.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
-        opt.BorderSizePixel = 0
-        opt.Text = tostring(option)
-        opt.TextColor3 = Color3.fromRGB(255,255,255)
-        opt.TextSize = 12
-        opt.Font = Enum.Font.Arcade
-        opt.Parent = list
-
-        local oc = Instance.new("UICorner", opt)
-        oc.CornerRadius = UDim.new(0,6)
-
-        opt.MouseButton1Click:Connect(function()
-            selected = option
-            mainButton.Text = title .. ": " .. tostring(selected)
-            list.Visible = false
-            ConfigSystem:UpdateSetting(self.Config, configKey, selected)
-            if callback then callback(selected) end
-        end)
-    end
-
-    mainButton.MouseButton1Click:Connect(function()
-        list.Visible = not list.Visible
-    end)
-
-    if callback then callback(selected) end
-end
+-- Cập nhật giao diện
+UI.ShowNotification("Auto Bounty đã sẵn sàng!", "success")
