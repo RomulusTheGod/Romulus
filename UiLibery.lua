@@ -1,6 +1,6 @@
 --[[
-    NIGHTMARE LIBRARY (With Config System + Notification System + Integrated Utility)
-    Converted by shadow - Modified with Load Steal System
+    NIGHTMARE LIBRARY - Load Steal Edition
+    Modified with Auto Steal System
 ]]
 
 local Nightmare = {}
@@ -15,11 +15,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 
--- ==================== ANTI-DETECTION PARENT (INFINITE YIELD METHOD) ====================
--- Fungsi untuk mendapatkan parent GUI yang paling selamat.
--- Keutamaan: gethui() > syn.protect_gui()
+-- ==================== ANTI-DETECTION PARENT ====================
 local function getSafeCoreGuiParent()
-    -- 1. Cuba gunakan gethui() (kaedah paling selamat dan moden)
     if gethui then
         local success, result = pcall(function()
             return gethui()
@@ -29,7 +26,6 @@ local function getSafeCoreGuiParent()
         end
     end
 
-    -- 2. Jika gethui gagal, Cuba gunakan syn.protect_gui()
     if syn and syn.protect_gui then
         local protectedGui = Instance.new("ScreenGui")
         protectedGui.Name = "Nightmare_Protected"
@@ -40,18 +36,14 @@ local function getSafeCoreGuiParent()
         return protectedGui
     end
 
-    -- Jika kedua-duanya gagal, kembalikan CoreGui sebagai fallback
     return CoreGui
 end
 
 -- ==================== CONFIG SAVE SYSTEM ====================
 local ConfigSystem = {}
 ConfigSystem.ConfigFile = "Nightmare_Config.json"
-
--- Default config
 ConfigSystem.DefaultConfig = {}
 
--- Load config dari file
 function ConfigSystem:Load()
     if isfile and isfile(self.ConfigFile) then
         local success, result = pcall(function()
@@ -71,7 +63,6 @@ function ConfigSystem:Load()
     end
 end
 
--- Save config ke file
 function ConfigSystem:Save(config)
     local success, error = pcall(function()
         local encoded = HttpService:JSONEncode(config)
@@ -86,7 +77,6 @@ function ConfigSystem:Save(config)
     end
 end
 
--- Update satu setting sahaja
 function ConfigSystem:UpdateSetting(config, key, value)
     config[key] = value
     self:Save(config)
@@ -94,13 +84,11 @@ end
 
 -- ==================== NOTIFICATION SYSTEM ====================
 local NotificationGui = nil
-local DEFAULT_NOTIFICATION_SOUND_ID = 3398620867 -- ID untuk bunyi 'ding' default
+local DEFAULT_NOTIFICATION_SOUND_ID = 3398620867
 
--- Function untuk mencipta NotificationGui (dipanggil sekali sahaja)
 local function createNotificationGui()
-    if NotificationGui then return end -- Jika sudah wujud, jangan cipta lagi
+    if NotificationGui then return end
     
-    -- Dapatkan parent yang selamat untuk notifikasi juga
     local safeParent = getSafeCoreGuiParent()
     
     NotificationGui = Instance.new("ScreenGui")
@@ -124,7 +112,7 @@ pcall(function()
     MutationsModule = require(ReplicatedStorage.Datas.Mutations)
 end)
 
--- ==================== LOAD STEAL DETECTION LOGIC ====================
+-- ==================== DETECTION LOGIC ====================
 
 local function getTraitMultiplier(model)
     if not TraitsModule then return 0 end
@@ -197,7 +185,7 @@ local function findTheAbsoluteBestPet()
     return highest.value > 0 and highest or nil
 end
 
--- ==================== TELEPORT LOGIC (FLYING CARPET) ====================
+-- ==================== TELEPORT LOGIC ====================
 
 local function equipFlyingCarpet()
     local character = LocalPlayer.Character
@@ -268,8 +256,6 @@ local function getSafeOutsideDecorPos(plot, targetPos, fromPos)
     return targetPos
 end
 
--- ==================== FACE TARGET ====================
-
 local function faceTarget(targetPos)
     local character = LocalPlayer.Character
     if not character then return false end
@@ -290,12 +276,10 @@ end
 -- ==================== INSTANT CLONER ====================
 
 local function instantCloner()
-    if isCloning then
-        return false
-    end
+    if isCloning then return false end
     isCloning = true
     
-    local success, err = pcall(function()
+    local success = pcall(function()
         local character = LocalPlayer.Character
         if not character then error("Character not found") end
         local humanoid = character:FindFirstChild("Humanoid")
@@ -311,7 +295,7 @@ local function instantCloner()
         
         local backpack = LocalPlayer.Backpack
         local cloner = backpack:FindFirstChild("Quantum Cloner")
-        if not cloner then error("Quantum Cloner not found in inventory!") end
+        if not cloner then error("Quantum Cloner not found!") end
         
         humanoid:EquipTool(cloner)
         task.wait(0.1)
@@ -324,17 +308,12 @@ local function instantCloner()
         clonerRemote:FireServer()
     end)
     
-    if not success then
-        isCloning = false
-        return false
-    end
-    
     task.wait(1)
     isCloning = false
-    return true
+    return success
 end
 
--- ==================== FLY SYSTEM TO TARGET ====================
+-- ==================== FLY SYSTEM ====================
 
 local flyConnection = nil
 local H_SPEED = 70
@@ -343,7 +322,6 @@ local BASE_GRAVITY = 0.72
 local HEAD_OFFSET = 2.7
 local CEILING_ZONE = 0.45
 local ARRIVAL_DISTANCE = 5
-
 local MODE = "IDLE"
 local stateCooldown = 0
 
@@ -527,7 +505,7 @@ local function autoTPToBest()
     return bestPet
 end
 
--- ==================== MAIN AUTO STEAL FUNCTION ====================
+-- ==================== MAIN AUTO STEAL ====================
 
 local function autoSteal()
     if not LoadStealActive then return end
@@ -536,13 +514,10 @@ local function autoSteal()
     if not bestPet then return end
     
     task.wait(0.5)
-    
     faceTarget(bestPet.position)
     task.wait(0.3)
-    
     instantCloner()
     task.wait(0.5)
-    
     flyToTarget(bestPet.position)
 end
 
@@ -554,10 +529,8 @@ local function startLoadSteal()
     
     LoadStealConnection = task.spawn(function()
         while LoadStealActive do
-            pcall(function()
-                autoSteal()
-            end)
-            task.wait(2) -- Aguarda 2 segundos entre cada ciclo
+            pcall(autoSteal)
+            task.wait(2)
         end
     end)
 end
@@ -572,10 +545,9 @@ local function stopLoadSteal()
     stopVelocity()
 end
 
--- ==================== MAIN LIBRARY CREATION ====================
+-- ==================== UI CREATION ====================
 function Nightmare:Create()
     self.Config = ConfigSystem:Load()
-
     local safeParent = getSafeCoreGuiParent()
 
     local ScreenGui = Instance.new("ScreenGui")
@@ -624,7 +596,6 @@ function Nightmare:Create()
 
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(1, 0, 0, 40)
-    TitleLabel.Position = UDim2.new(0, 0, 0, 0)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Text = "NIGHTMARE"
     TitleLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -655,7 +626,7 @@ function Nightmare:Create()
         ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 10)
     end)
 
-    -- Helper function to create toggle buttons
+    -- Helper Functions
     local function createToggleButton(parent, name, text, position, size)
         local toggle = Instance.new("TextButton")
         toggle.Name = name
@@ -681,7 +652,6 @@ function Nightmare:Create()
         return toggle
     end
 
-    -- Helper function to set toggle state
     local function setToggleState(toggle, state)
         if state then
             toggle.BackgroundColor3 = Color3.fromRGB(0, 139, 0)
@@ -712,7 +682,6 @@ function Nightmare:Create()
 
     local UtilityTitle = Instance.new("TextLabel")
     UtilityTitle.Size = UDim2.new(1, 0, 0, 35)
-    UtilityTitle.Position = UDim2.new(0, 0, 0, 0)
     UtilityTitle.BackgroundTransparency = 1
     UtilityTitle.Text = "UTILITY"
     UtilityTitle.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -739,14 +708,6 @@ function Nightmare:Create()
     UtilityListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         UtilityScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UtilityListLayout.AbsoluteContentSize.Y + 10)
     end)
-
-    -- Divider
-    local divider = Instance.new("Frame")
-    divider.Size = UDim2.new(1, -20, 0, 2)
-    divider.Position = UDim2.new(0, 10, 1, -65)
-    divider.BackgroundTransparency = 1
-    divider.BorderSizePixel = 0
-    divider.Parent = MainFrame
 
     -- Utility Button
     local utilityButton = Instance.new("TextButton")
@@ -803,12 +764,11 @@ function Nightmare:Create()
         discordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     end)
 
-    -- Toggle button functionality
     ToggleButton.MouseButton1Click:Connect(function()
         MainFrame.Visible = not MainFrame.Visible
     end)
 
-    -- ==================== CREATE UTILITY TOGGLES (INTEGRATED) ====================
+    -- CREATE UTILITY TOGGLES
     local function createIntegratedUtilityToggle(toggleName, configKey, callback)
         local utilityToggle = createToggleButton(
             UtilityScrollFrame, 
@@ -820,20 +780,17 @@ function Nightmare:Create()
         
         local isToggled = self.Config[configKey] or false
         setToggleState(utilityToggle, isToggled)
-
         if callback then callback(isToggled) end
         
         utilityToggle.MouseButton1Click:Connect(function()
             isToggled = not isToggled
             setToggleState(utilityToggle, isToggled)
-            
             ConfigSystem:UpdateSetting(self.Config, configKey, isToggled)
-            
             if callback then callback(isToggled) end
         end)
     end
 
-    -- Create the Load Steal toggle (substituindo Unlock Nearest)
+    -- Load Steal Toggle
     createIntegratedUtilityToggle("Load Steal", "Nightmare_Utility_LoadSteal", function(state)
         if state then
             startLoadSteal()
@@ -842,17 +799,13 @@ function Nightmare:Create()
         end
     end)
 
-    -- Create Notification Gui at the end
     createNotificationGui()
-
     print("✅ Nightmare Created Successfully!")
 end
 
--- Fungsi utama untuk menunjukkan notifikasi
+-- ==================== NOTIFY FUNCTION ====================
 function Nightmare:Notify(text, soundId)
-    if not NotificationGui then
-        createNotificationGui()
-    end
+    if not NotificationGui then createNotificationGui() end
 
     local soundToPlay = soundId or DEFAULT_NOTIFICATION_SOUND_ID
     
@@ -862,10 +815,7 @@ function Nightmare:Notify(text, soundId)
         sound.Volume = 0.4
         sound.Parent = SoundService
         sound:Play()
-        
-        sound.Ended:Connect(function()
-            sound:Destroy()
-        end)
+        sound.Ended:Connect(function() sound:Destroy() end)
     end
     
     local notifFrame = Instance.new("Frame")
@@ -899,29 +849,22 @@ function Nightmare:Notify(text, soundId)
     textLabel.TextYAlignment = Enum.TextYAlignment.Center
     textLabel.Parent = notifFrame
     
-    local targetHeight = 60
-    local targetYPosition = 20
-    
     local tweenInfoIn = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    local goalIn = { Size = UDim2.new(0, 300, 0, targetHeight), Position = UDim2.new(0.5, 0, 0, targetYPosition) }
+    local goalIn = { Size = UDim2.new(0, 300, 0, 60), Position = UDim2.new(0.5, 0, 0, 20) }
     local tweenIn = TweenService:Create(notifFrame, tweenInfoIn, goalIn)
     tweenIn:Play()
     
     task.spawn(function()
         task.wait(3)
-        
         local tweenInfoOut = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In)
         local goalOut = { Size = UDim2.new(0, 300, 0, 0), Position = UDim2.new(0.5, 0, 0, -100) }
         local tweenOut = TweenService:Create(notifFrame, tweenInfoOut, goalOut)
         tweenOut:Play()
-        
-        tweenOut.Completed:Connect(function()
-            notifFrame:Destroy()
-        end)
+        tweenOut.Completed:Connect(function() notifFrame:Destroy() end)
     end)
 end
 
--- ==================== TOGGLE CREATION FUNCTION ====================
+-- ==================== ADD TOGGLE ROW ====================
 function Nightmare:AddToggleRow(text1, callback1, text2, callback2)
     local rowFrame = Instance.new("Frame")
     rowFrame.Size = UDim2.new(1, 0, 0, 35)
@@ -941,21 +884,17 @@ function Nightmare:AddToggleRow(text1, callback1, text2, callback2)
 
         local isToggled = self.Config[configKey] or false
         setToggleState(toggle, isToggled)
-
         if callback then callback(isToggled) end
 
         toggle.MouseButton1Click:Connect(function()
             isToggled = not isToggled
             setToggleState(toggle, isToggled)
-
             ConfigSystem:UpdateSetting(self.Config, configKey, isToggled)
-
             if callback then callback(isToggled) end
         end)
     end
 
     createSingleToggle(text1, callback1, UDim2.new(0, 5, 0, 0))
-
     if text2 and callback2 then
         createSingleToggle(text2, callback2, UDim2.new(0, 115, 0, 0))
     end
